@@ -23,7 +23,11 @@
               'spin-slow': 'spin 8s linear infinite',
               'float': 'float 3s ease-in-out infinite',
               'gradient': 'gradient-shift 4s ease infinite',
-              'pulse-glow': 'pulse-glow 2s ease-in-out infinite'
+              'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+              'shimmer': 'shimmer 3s infinite',
+              'slide': 'slide 2s infinite',
+              'glow': 'glow 2s ease-in-out infinite',
+              'bounce-subtle': 'bounce-subtle 2s ease-in-out infinite'
             },
             keyframes: {
               float: {
@@ -39,16 +43,39 @@
               'pulse-glow': {
                 '0%, 100%': { 'box-shadow': '0 0 5px rgba(139, 92, 246, 0.3)' },
                 '50%': { 'box-shadow': '0 0 20px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.4)' }
+              },
+              shimmer: {
+                '0%': { transform: 'translateX(-100%)' },
+                '100%': { transform: 'translateX(100%)' }
+              },
+              slide: {
+                '0%': { transform: 'translateX(-100%)' },
+                '100%': { transform: 'translateX(100%)' }
+              },
+              glow: {
+                '0%, 100%': { opacity: '0.5', transform: 'scale(1)' },
+                '50%': { opacity: '1', transform: 'scale(1.05)' }
+              },
+              'bounce-subtle': {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-5px)' }
               }
+            },
+            backgroundSize: {
+              '400%': '400% 400%'
             }
           }
         }
       }
     </script>
     <style>
+      /* Enhanced Typography */
       body {
-        font-family: 'Inter', sans-serif; /* A clean, modern font often used with Tailwind */
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
+
       /* Custom scrollbar for better aesthetics in dark mode */
       ::-webkit-scrollbar {
         width: 8px;
@@ -64,7 +91,12 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #64748b; /* slate-500 */
       }
-      
+
+      /* Tabular numbers for financial data */
+      .tabular-nums {
+        font-variant-numeric: tabular-nums;
+      }
+
       /* Custom animations for enhanced logo */
       @keyframes animate-spin-slow {
         from {
@@ -74,7 +106,7 @@
           transform: rotate(360deg);
         }
       }
-      
+
       @keyframes float {
         0%, 100% {
           transform: translateY(0px) scale(1);
@@ -93,7 +125,7 @@
           opacity: 0.9;
         }
       }
-      
+
       @keyframes gradient-shift {
         0%, 100% {
           background-position: 0% 50%;
@@ -102,7 +134,7 @@
           background-position: 100% 50%;
         }
       }
-      
+
       @keyframes pulse-glow {
         0%, 100% {
           box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
@@ -111,22 +143,97 @@
           box-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.4);
         }
       }
-      
+
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      @keyframes slide {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      @keyframes glow {
+        0%, 100% {
+          opacity: 0.5;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes bounce-subtle {
+        0%, 100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
+
       .animate-spin-slow {
         animation: animate-spin-slow 8s linear infinite;
       }
-      
+
       .animate-float {
         animation: float 3s ease-in-out infinite;
       }
-      
+
       .animate-gradient {
         animation: gradient-shift 4s ease infinite;
         background-size: 400% 400%;
       }
-      
+
       .animate-pulse-glow {
         animation: pulse-glow 2s ease-in-out infinite;
+      }
+
+      .animate-shimmer {
+        animation: shimmer 3s infinite;
+      }
+
+      .animate-slide {
+        animation: slide 2s infinite;
+      }
+
+      .animate-glow {
+        animation: glow 2s ease-in-out infinite;
+      }
+
+      .animate-bounce-subtle {
+        animation: bounce-subtle 2s ease-in-out infinite;
+      }
+
+      /* Accessibility: Respect user preferences */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      /* High contrast mode support */
+      @media (prefers-contrast: high) {
+        .bg-slate-800 {
+          background-color: #000;
+        }
+        .text-slate-400 {
+          color: #fff;
+        }
       }
     </style>
   </head>

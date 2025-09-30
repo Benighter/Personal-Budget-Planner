@@ -45,13 +45,14 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       aria-label={ariaLabel}
-      className="fixed bottom-8 right-8 z-50 flex items-center justify-center h-14 bg-gradient-to-r from-sky-500 to-cyan-500 text-white rounded-full shadow-lg focus:outline-none focus:ring-4 focus:ring-sky-500/50 overflow-hidden"
+      className="fixed bottom-8 right-8 z-50 flex items-center justify-center h-14 bg-gradient-to-r from-sky-500 via-violet-500 to-pink-500 text-white rounded-full shadow-2xl shadow-sky-500/50 hover:shadow-3xl hover:shadow-sky-500/60 focus:outline-none focus:ring-4 focus:ring-sky-500/50 overflow-hidden group"
       initial={{ y: 100, opacity: 0 }}
-      animate={{ 
-        y: 0, 
+      animate={{
+        y: 0,
         opacity: 1,
         width: isHovered ? 'auto' : '56px',
       }}
+      whileHover={{ scale: 1.1, y: -4 }}
       whileTap={{ scale: 0.95 }}
       transition={{
         type: 'spring',
@@ -60,6 +61,14 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
         delay: 0.2,
       }}
     >
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-r from-sky-500 via-violet-500 to-pink-500 animate-gradient bg-400%" />
+
+      {/* Glow effect */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 via-violet-500 to-pink-500 rounded-full opacity-50 blur-lg group-hover:opacity-75 transition-opacity" />
+
+      {/* Shine effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
       <div className="flex items-center px-4 z-10">
         <motion.div
           animate={{ rotate: isHovered ? 90 : 0 }}

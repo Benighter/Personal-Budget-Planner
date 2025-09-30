@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import {
   HomeIcon,
@@ -83,19 +84,35 @@ const Navbar: React.FC<NavbarProps> = ({
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-1">
               {navItems.map(item => (
-                <button
+                <motion.button
                   key={item.id}
                   onClick={() => handleSectionClick(item.id)}
-                  className={`px-3 py-2 rounded-lg flex items-center space-x-2 text-sm font-medium transition-colors duration-150 ${
+                  className={`relative px-3 py-2 rounded-lg flex items-center space-x-2 text-sm font-medium transition-all duration-200 ${
                     currentSection === item.id
-                      ? 'bg-slate-800 text-sky-400 shadow-sm'
-                      : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
+                      ? 'text-sky-400'
+                      : 'text-slate-300 hover:text-white'
                   }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   aria-label={item.description}
                 >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </button>
+                  {/* Active indicator background */}
+                  {currentSection === item.id && (
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-slate-800/80 to-slate-700/80 backdrop-blur-sm rounded-lg border border-sky-500/20"
+                      layoutId="activeNav"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+
+                  {/* Hover background */}
+                  <motion.div
+                    className="absolute inset-0 bg-slate-800/50 rounded-lg opacity-0 hover:opacity-100 transition-opacity"
+                  />
+
+                  <item.icon className="w-4 h-4 relative z-10" />
+                  <span className="relative z-10">{item.label}</span>
+                </motion.button>
               ))}
             </div>
           </div>
@@ -106,13 +123,18 @@ const Navbar: React.FC<NavbarProps> = ({
             <NetworkStatusIndicator className="hidden md:block" />
 
             {/* Add Category Button */}
-            <button
+            <motion.button
               onClick={onNewCategory}
-              className="hidden lg:flex items-center space-x-2 bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 shadow-sm"
+              className="hidden lg:flex items-center space-x-2 bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 transition-all duration-200 relative overflow-hidden group"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <PlusIcon className="w-4 h-4" />
-              <span>Add Category</span>
-            </button>
+              {/* Shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+
+              <PlusIcon className="w-4 h-4 relative z-10" />
+              <span className="relative z-10">Add Category</span>
+            </motion.button>
 
             {/* User Dropdown */}
             <UserDropdown

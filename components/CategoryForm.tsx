@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { CategoryFormProps, CategoryFormPropsEdit } from '../types';
 import { useToast } from '../hooks/useToast';
 
@@ -71,57 +72,104 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="categoryName" className="block text-sm font-medium text-slate-300 mb-1">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Category Name Input */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <label
+          htmlFor="categoryName"
+          className="block text-sm font-semibold text-slate-300 mb-2 transition-colors group-focus-within:text-sky-400"
+        >
           Category Name
         </label>
-        <input
-          type="text"
-          id="categoryName"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full bg-slate-700 border border-slate-600 text-slate-100 rounded-md p-2.5 focus:ring-sky-500 focus:border-sky-500 transition"
-          placeholder="e.g., Savings, Expenses"
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="categoryAmount" className="block text-sm font-medium text-slate-300 mb-1">
+        <div className="relative group">
+          <input
+            type="text"
+            id="categoryName"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 transition-all duration-200 outline-none"
+            placeholder="e.g., Savings, Expenses"
+            required
+          />
+          {/* Focus indicator line */}
+          <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-sky-500 to-violet-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
+        </div>
+        <p className="mt-1.5 text-xs text-slate-400">
+          Choose a descriptive name for your category
+        </p>
+      </motion.div>
+
+      {/* Allocated Amount Input */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <label
+          htmlFor="categoryAmount"
+          className="block text-sm font-semibold text-slate-300 mb-2 transition-colors group-focus-within:text-sky-400"
+        >
           Allocated Amount ({selectedCurrency})
         </label>
-        <input
-          type="number"
-          id="categoryAmount"
-          value={allocatedAmount}
-          onChange={(e) => setAllocatedAmount(e.target.value)}
-          className="w-full bg-slate-700 border border-slate-600 text-slate-100 rounded-md p-2.5 focus:ring-sky-500 focus:border-sky-500 transition"
-          placeholder="e.g., 500"
-          min="0"
-          step="any"
-          required
-        />
-         <p className="text-xs text-slate-400 mt-1">
-          {existingCategory && minAllocatableAmountForEdit !== undefined
-            ? `Max based on income: ${formatAmountForAlert(maxAllocatableAmount)}. Min for subcategories: ${formatAmountForAlert(minAllocatableAmountForEdit ?? 0)}`
-            : `Available for new category: ${formatAmountForAlert(maxAllocatableAmount)}`}
-        </p>
-      </div>
-      <div className="flex justify-end space-x-3 pt-2">
-        <button
+        <div className="relative group">
+          <input
+            type="number"
+            id="categoryAmount"
+            value={allocatedAmount}
+            onChange={(e) => setAllocatedAmount(e.target.value)}
+            className="w-full bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 transition-all duration-200 outline-none tabular-nums"
+            placeholder="e.g., 500"
+            min="0"
+            step="any"
+            required
+          />
+          {/* Focus indicator line */}
+          <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-sky-500 to-violet-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
+        </div>
+        <div className="mt-2 p-3 bg-slate-700/30 rounded-lg border border-slate-600/30">
+          <p className="text-xs text-slate-400">
+            {existingCategory && minAllocatableAmountForEdit !== undefined
+              ? `Max based on income: ${formatAmountForAlert(maxAllocatableAmount)}. Min for subcategories: ${formatAmountForAlert(minAllocatableAmountForEdit ?? 0)}`
+              : `Available for new category: ${formatAmountForAlert(maxAllocatableAmount)}`}
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Action Buttons */}
+      <motion.div
+        className="flex flex-col sm:flex-row justify-end gap-3 pt-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <motion.button
           type="button"
           onClick={onClose}
-          className="px-4 py-2.5 text-sm font-medium text-slate-300 bg-slate-600 hover:bg-slate-500 rounded-md transition"
+          className="relative overflow-hidden bg-slate-700/50 hover:bg-slate-600/50 backdrop-blur-sm text-slate-200 hover:text-white font-medium px-6 py-3 rounded-xl border border-slate-600/50 hover:border-slate-500 transition-all duration-300 group"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          Cancel
-        </button>
-        <button
+          <span className="relative z-10">Cancel</span>
+        </motion.button>
+
+        <motion.button
           type="submit"
-          className="px-4 py-2.5 text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-md transition"
+          className="relative overflow-hidden bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 transition-all duration-300 group"
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
         >
-          {existingCategory ? 'Save Changes' : 'Add Category'}
-        </button>
-      </div>
+          {/* Shine effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+
+          <span className="relative z-10">
+            {existingCategory ? 'Save Changes' : 'Add Category'}
+          </span>
+        </motion.button>
+      </motion.div>
     </form>
   );
 };

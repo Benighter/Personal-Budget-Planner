@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { InfoIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon } from '../constants';
 import { CURRENCIES } from '../constants';
 
@@ -68,32 +69,61 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
   return (
     <>
       {/* Enhanced Header Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Budget Overview</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-sky-100 to-white tracking-tight">
+              Budget Overview
+            </h2>
             <p className="text-slate-400 text-sm sm:text-base">Configure your income and track your allocation progress</p>
           </div>
-          <button 
+          <motion.button
             onClick={onToggleGlobalAmountsHidden}
-            className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-600 px-3 sm:px-4 py-2 rounded-xl transition-all duration-200"
+            className="flex items-center justify-center space-x-2 bg-slate-700/50 hover:bg-slate-600/50 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl border border-slate-600/50 hover:border-slate-500 transition-all duration-200"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             aria-label={areGlobalAmountsHidden ? "Show amounts" : "Hide amounts"}
           >
             <span className="text-slate-300 text-xs sm:text-sm font-medium">
               {areGlobalAmountsHidden ? "Show" : "Hide"} Amounts
             </span>
             {areGlobalAmountsHidden ? <EyeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" /> : <EyeSlashIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />}
-          </button>
+          </motion.button>
         </div>
 
         {/* Enhanced Input Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.1 }
+            }
+          }}
+          initial="hidden"
+          animate="show"
+        >
           {/* Income Input */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-700 p-6 rounded-2xl border border-slate-600">
-            <label htmlFor="totalIncome" className="block text-sm font-semibold text-slate-300 mb-3">
+          <motion.div
+            className="relative overflow-hidden bg-gradient-to-br from-slate-800/90 to-slate-700/70 backdrop-blur-xl p-6 rounded-2xl border border-slate-600/50 shadow-xl"
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              show: { opacity: 1, y: 0 }
+            }}
+          >
+            {/* Glow effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-2xl opacity-0 hover:opacity-10 blur-xl transition-opacity duration-500" />
+
+            <label htmlFor="totalIncome" className="relative block text-sm font-semibold text-slate-300 mb-3">
               Monthly Income
             </label>
-            <div className="relative">
+            <div className="relative group">
               <input
                 ref={incomeInputRef}
                 type={!isIncomeHidden || isIncomeInputFocused ? "number" : "password"}
@@ -102,42 +132,65 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
                 onChange={handleIncomeChange}
                 onFocus={handleIncomeFocus}
                 onBlur={handleIncomeBlur}
-                className="w-full bg-slate-700 border border-slate-600 text-slate-100 rounded-xl px-4 py-3 text-lg font-semibold focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all duration-200 pr-12"
+                className="w-full bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 text-slate-100 rounded-xl px-4 py-3 text-lg font-semibold transition-all duration-200 pr-12 outline-none tabular-nums"
                 placeholder="Enter your monthly income"
               />
-              <button 
+              <motion.button
                 onClick={onToggleIncomeHidden}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-sky-400 transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-400 transition-colors p-1 rounded-lg"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 aria-label={isIncomeHidden ? "Show income" : "Hide income"}
               >
-                {isIncomeHidden ? 
-                  <EyeIcon className="w-5 h-5" /> : 
+                {isIncomeHidden ?
+                  <EyeIcon className="w-5 h-5" /> :
                   <EyeSlashIcon className="w-5 h-5" />
                 }
-              </button>
+              </motion.button>
+              {/* Focus indicator line */}
+              <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-emerald-500 to-cyan-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
             </div>
-          </div>
+          </motion.div>
 
           {/* Currency Selection */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-700 p-6 rounded-2xl border border-slate-600">
-            <label htmlFor="currencySelector" className="block text-sm font-semibold text-slate-300 mb-3">
+          <motion.div
+            className="relative overflow-hidden bg-gradient-to-br from-slate-800/90 to-slate-700/70 backdrop-blur-xl p-6 rounded-2xl border border-slate-600/50 shadow-xl"
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              show: { opacity: 1, y: 0 }
+            }}
+          >
+            {/* Glow effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 to-violet-500 rounded-2xl opacity-0 hover:opacity-10 blur-xl transition-opacity duration-500" />
+
+            <label htmlFor="currencySelector" className="relative block text-sm font-semibold text-slate-300 mb-3">
               Currency
             </label>
-            <select
-              id="currencySelector"
-              value={selectedCurrency}
-              onChange={(e) => onCurrencyChange(e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 text-slate-100 rounded-xl px-4 py-3 text-lg font-semibold focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all duration-200"
-            >
-              {CURRENCIES.map((c, index) => (
-                <option key={c.code || `currency-${index}`} value={c.code}>
-                  {c.name} ({c.code})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+            <div className="relative group">
+              <select
+                id="currencySelector"
+                value={selectedCurrency}
+                onChange={(e) => onCurrencyChange(e.target.value)}
+                className="w-full bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 text-slate-100 rounded-xl px-4 py-3 text-lg font-semibold transition-all duration-200 outline-none appearance-none cursor-pointer"
+              >
+                {CURRENCIES.map((c, index) => (
+                  <option key={c.code || `currency-${index}`} value={c.code}>
+                    {c.name} ({c.code})
+                  </option>
+                ))}
+              </select>
+              {/* Dropdown icon */}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              {/* Focus indicator line */}
+              <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-sky-500 to-violet-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
+            </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Enhanced Budget Breakdown */}
       <div className="bg-gradient-to-br from-slate-800 to-slate-700 p-4 sm:p-6 lg:p-8 rounded-2xl border border-slate-600">

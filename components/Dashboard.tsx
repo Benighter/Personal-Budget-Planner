@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface DashboardProps {
   totalIncome: number;
@@ -66,103 +67,253 @@ const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="text-center py-6">
-        <h1 className="text-3xl font-bold text-white mb-2">Budget Dashboard</h1>
-        <p className="text-slate-400 text-lg">Get a clear overview of your financial health</p>
-      </div>
+      <motion.div
+        className="text-center py-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-sky-100 to-white mb-2 tracking-tight">
+          Budget Dashboard
+        </h1>
+        <p className="text-slate-400 text-base sm:text-lg">Get a clear overview of your financial health</p>
+      </motion.div>
 
       {/* Enhanced Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6"
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+          }
+        }}
+        initial="hidden"
+        animate="show"
+      >
         {/* Categories Card - Clickable */}
-        <button 
+        <motion.button
           onClick={() => onNavigateToSection?.('categories')}
-          className="bg-gradient-to-br from-slate-800 to-slate-700 p-6 rounded-2xl border border-slate-600 hover:border-sky-500 transition-all duration-300 group text-left w-full focus:outline-none focus:ring-2 focus:ring-sky-500/50 transform hover:scale-105"
+          className="relative overflow-hidden bg-gradient-to-br from-slate-800/90 to-slate-700/70 backdrop-blur-xl p-6 rounded-2xl border border-slate-600/50 hover:border-sky-400/70 shadow-xl shadow-slate-900/50 hover:shadow-2xl hover:shadow-sky-500/20 transition-all duration-300 group text-left w-full focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+          whileHover={{ scale: 1.03, y: -4 }}
+          whileTap={{ scale: 0.98 }}
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 }
+          }}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-400 text-sm font-medium mb-1">Active Categories</p>
-              <p className="text-3xl font-bold text-sky-400 mb-2">{totalCategories}</p>
+          {/* Animated background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 via-transparent to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+          {/* Glow effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 to-violet-500 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500" />
+
+          <div className="relative flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-slate-400 text-xs sm:text-sm font-medium mb-1 tracking-wide uppercase">Active Categories</p>
+              <p className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-sky-300 mb-2 tabular-nums">{totalCategories}</p>
               <div className="flex items-center text-xs text-slate-500">
-                <div className="w-2 h-2 bg-sky-400 rounded-full mr-2"></div>
+                <div className="w-2 h-2 bg-sky-400 rounded-full mr-2 animate-pulse"></div>
                 {totalSubcategories} subcategories
               </div>
             </div>
-            <div className="w-14 h-14 bg-sky-500/20 rounded-xl flex items-center justify-center group-hover:bg-sky-500/30 transition-colors">
-              <svg className="w-7 h-7 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            {/* Enhanced icon container */}
+            <motion.div
+              className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-sky-500/20 to-violet-500/20 rounded-2xl flex items-center justify-center group-hover:from-sky-500/30 group-hover:to-violet-500/30 transition-all duration-300"
+              whileHover={{ rotate: 5, scale: 1.1 }}
+            >
+              {/* Pulsing ring */}
+              <div className="absolute inset-0 rounded-2xl bg-sky-400/20 animate-ping opacity-0 group-hover:opacity-75" />
+              <svg className="w-7 h-7 sm:w-8 sm:h-8 text-sky-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
-            </div>
+            </motion.div>
           </div>
-        </button>
 
-        {/* Reports Card - Clickable */}
-        <button
+          {/* Bottom accent line */}
+          <motion.div
+            className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-sky-500 to-violet-500 rounded-full"
+            initial={{ width: 0 }}
+            whileHover={{ width: '100%' }}
+            transition={{ duration: 0.3 }}
+          />
+        </motion.button>
+
+        {/* Allocation Rate Card - Clickable */}
+        <motion.button
           onClick={() => onNavigateToSection?.('reports')}
-          className="bg-gradient-to-br from-slate-800 to-slate-700 p-6 rounded-2xl border border-slate-600 hover:border-emerald-500 transition-all duration-300 group text-left w-full focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transform hover:scale-105"
+          className="relative overflow-hidden bg-gradient-to-br from-slate-800/90 to-slate-700/70 backdrop-blur-xl p-6 rounded-2xl border border-slate-600/50 hover:border-emerald-400/70 shadow-xl shadow-slate-900/50 hover:shadow-2xl hover:shadow-emerald-500/20 transition-all duration-300 group text-left w-full focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+          whileHover={{ scale: 1.03, y: -4 }}
+          whileTap={{ scale: 0.98 }}
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 }
+          }}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-400 text-sm font-medium mb-1">Allocation Rate</p>
-              <p className="text-3xl font-bold text-emerald-400 mb-2">{allocationPercentage.toFixed(1)}%</p>
-              <div className="w-full bg-slate-600 rounded-full h-2">
-                <div 
-                  className="bg-emerald-400 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(allocationPercentage, 100)}%` }}
-                ></div>
+          {/* Animated background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+          {/* Glow effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500" />
+
+          <div className="relative flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-slate-400 text-xs sm:text-sm font-medium mb-1 tracking-wide uppercase">Allocation Rate</p>
+              <p className={`text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r ${
+                allocationPercentage > 100 ? 'from-red-400 to-orange-400' : 'from-emerald-400 to-emerald-300'
+              } mb-2 tabular-nums`}>
+                {allocationPercentage.toFixed(1)}%
+              </p>
+              {/* Enhanced progress bar */}
+              <div className="relative w-full bg-slate-700/50 rounded-full h-2 overflow-hidden backdrop-blur-sm border border-slate-600/30">
+                <motion.div
+                  className={`h-2 rounded-full bg-gradient-to-r ${
+                    allocationPercentage > 100 ? 'from-red-500 via-red-400 to-orange-500' : 'from-emerald-500 via-emerald-400 to-cyan-500'
+                  }`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(allocationPercentage, 100)}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                >
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-slide" />
+                </motion.div>
               </div>
             </div>
-            <div className="w-14 h-14 bg-emerald-500/20 rounded-xl flex items-center justify-center group-hover:bg-emerald-500/30 transition-colors">
-              <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            {/* Enhanced icon container */}
+            <motion.div
+              className={`relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br ${
+                allocationPercentage > 100 ? 'from-red-500/20 to-orange-500/20' : 'from-emerald-500/20 to-cyan-500/20'
+              } rounded-2xl flex items-center justify-center group-hover:from-emerald-500/30 group-hover:to-cyan-500/30 transition-all duration-300`}
+              whileHover={{ rotate: 5, scale: 1.1 }}
+            >
+              {/* Pulsing ring */}
+              <div className={`absolute inset-0 rounded-2xl ${
+                allocationPercentage > 100 ? 'bg-red-400/20' : 'bg-emerald-400/20'
+              } animate-ping opacity-0 group-hover:opacity-75`} />
+              <svg className={`w-7 h-7 sm:w-8 sm:h-8 ${
+                allocationPercentage > 100 ? 'text-red-400' : 'text-emerald-400'
+              } relative z-10`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-            </div>
+            </motion.div>
           </div>
-        </button>
 
-        {/* Planning Card - Clickable */}
-        <button
+          {/* Bottom accent line */}
+          <motion.div
+            className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${
+              allocationPercentage > 100 ? 'from-red-500 to-orange-500' : 'from-emerald-500 to-cyan-500'
+            } rounded-full`}
+            initial={{ width: 0 }}
+            whileHover={{ width: '100%' }}
+            transition={{ duration: 0.3 }}
+          />
+        </motion.button>
+
+        {/* Task Progress Card - Clickable */}
+        <motion.button
           onClick={() => onNavigateToSection?.('planning')}
-          className="bg-gradient-to-br from-slate-800 to-slate-700 p-6 rounded-2xl border border-slate-600 hover:border-purple-500 transition-all duration-300 group text-left w-full focus:outline-none focus:ring-2 focus:ring-purple-500/50 transform hover:scale-105"
+          className="relative overflow-hidden bg-gradient-to-br from-slate-800/90 to-slate-700/70 backdrop-blur-xl p-6 rounded-2xl border border-slate-600/50 hover:border-violet-400/70 shadow-xl shadow-slate-900/50 hover:shadow-2xl hover:shadow-violet-500/20 transition-all duration-300 group text-left w-full focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+          whileHover={{ scale: 1.03, y: -4 }}
+          whileTap={{ scale: 0.98 }}
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 }
+          }}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-400 text-sm font-medium mb-1">Task Progress</p>
-              <p className="text-3xl font-bold text-purple-400 mb-2">{completedSubcategories}/{totalSubcategories}</p>
+          {/* Animated background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+          {/* Glow effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 to-purple-500 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500" />
+
+          <div className="relative flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-slate-400 text-xs sm:text-sm font-medium mb-1 tracking-wide uppercase">Task Progress</p>
+              <p className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-300 mb-2 tabular-nums">
+                {completedSubcategories}/{totalSubcategories}
+              </p>
               <div className="flex items-center text-xs text-slate-500">
-                <div className="w-2 h-2 bg-purple-400 rounded-full mr-2"></div>
+                <div className="w-2 h-2 bg-violet-400 rounded-full mr-2 animate-pulse"></div>
                 {completionRate.toFixed(0)}% complete
               </div>
             </div>
-            <div className="w-14 h-14 bg-purple-500/20 rounded-xl flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
-              <svg className="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            {/* Enhanced icon container */}
+            <motion.div
+              className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center group-hover:from-violet-500/30 group-hover:to-purple-500/30 transition-all duration-300"
+              whileHover={{ rotate: 5, scale: 1.1 }}
+            >
+              {/* Pulsing ring */}
+              <div className="absolute inset-0 rounded-2xl bg-violet-400/20 animate-ping opacity-0 group-hover:opacity-75" />
+              <svg className="w-7 h-7 sm:w-8 sm:h-8 text-violet-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-            </div>
+            </motion.div>
           </div>
-        </button>
 
-        {/* Savings Calculator Card - Clickable */}
-        <button
+          {/* Bottom accent line */}
+          <motion.div
+            className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full"
+            initial={{ width: 0 }}
+            whileHover={{ width: '100%' }}
+            transition={{ duration: 0.3 }}
+          />
+        </motion.button>
+
+        {/* Savings Potential Card - Clickable */}
+        <motion.button
           onClick={() => onNavigateToSection?.('savings')}
-          className="bg-gradient-to-br from-slate-800 to-slate-700 p-6 rounded-2xl border border-slate-600 hover:border-amber-500 transition-all duration-300 group text-left w-full focus:outline-none focus:ring-2 focus:ring-amber-500/50 transform hover:scale-105"
+          className="relative overflow-hidden bg-gradient-to-br from-slate-800/90 to-slate-700/70 backdrop-blur-xl p-6 rounded-2xl border border-slate-600/50 hover:border-amber-400/70 shadow-xl shadow-slate-900/50 hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-300 group text-left w-full focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          whileHover={{ scale: 1.03, y: -4 }}
+          whileTap={{ scale: 0.98 }}
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 }
+          }}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-400 text-sm font-medium mb-1">Savings Potential</p>
-              <p className="text-3xl font-bold text-amber-400 mb-2">{savingsRate.toFixed(1)}%</p>
+          {/* Animated background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+          {/* Glow effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500" />
+
+          <div className="relative flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-slate-400 text-xs sm:text-sm font-medium mb-1 tracking-wide uppercase">Savings Potential</p>
+              <p className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300 mb-2 tabular-nums">
+                {savingsRate.toFixed(1)}%
+              </p>
               <div className="flex items-center text-xs text-slate-500">
-                <div className="w-2 h-2 bg-amber-400 rounded-full mr-2"></div>
+                <div className="w-2 h-2 bg-amber-400 rounded-full mr-2 animate-pulse"></div>
                 {savingsRate > 0 ? 'Funds available' : 'No surplus'}
               </div>
             </div>
-            <div className="w-14 h-14 bg-amber-500/20 rounded-xl flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
-              <svg className="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            {/* Enhanced icon container */}
+            <motion.div
+              className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-amber-500/20 to-yellow-500/20 rounded-2xl flex items-center justify-center group-hover:from-amber-500/30 group-hover:to-yellow-500/30 transition-all duration-300"
+              whileHover={{ rotate: 5, scale: 1.1 }}
+            >
+              {/* Pulsing ring */}
+              <div className="absolute inset-0 rounded-2xl bg-amber-400/20 animate-ping opacity-0 group-hover:opacity-75" />
+              <svg className="w-7 h-7 sm:w-8 sm:h-8 text-amber-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
-            </div>
+            </motion.div>
           </div>
-        </button>
-      </div>
+
+          {/* Bottom accent line */}
+          <motion.div
+            className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full"
+            initial={{ width: 0 }}
+            whileHover={{ width: '100%' }}
+            transition={{ duration: 0.3 }}
+          />
+        </motion.button>
+      </motion.div>
 
       {/* Enhanced Content Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
@@ -311,25 +462,60 @@ const Dashboard: React.FC<DashboardProps> = ({
           
           {hasData ? (
             <div className="space-y-4 sm:space-y-6">
-              {/* Budget Allocation Progress */}
-              <div className="p-3 sm:p-4 bg-slate-700/50 rounded-lg sm:rounded-xl">
-                <div className="flex items-center justify-between mb-2 sm:mb-3">
-                  <span className="text-slate-400 font-medium text-sm sm:text-base">Budget Progress</span>
-                  <span className="text-sky-400 font-bold text-sm">{allocationPercentage.toFixed(1)}%</span>
+              {/* Enhanced Budget Allocation Progress */}
+              <motion.div
+                className="p-4 sm:p-5 bg-gradient-to-br from-slate-700/50 to-slate-800/30 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-slate-600/30"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <span className="text-slate-300 font-semibold text-sm sm:text-base">Budget Progress</span>
+                  <span className={`font-bold text-base sm:text-lg tabular-nums ${
+                    allocationPercentage > 100 ? 'text-red-400' : 'text-sky-400'
+                  }`}>
+                    {allocationPercentage.toFixed(1)}%
+                  </span>
                 </div>
-                <div className="w-full bg-slate-600 rounded-full h-2 sm:h-3">
-                  <div
-                    className={`h-2 sm:h-3 rounded-full transition-all duration-500 ${
-                      allocationPercentage > 100 ? 'bg-red-500' : 'bg-sky-400'
+
+                {/* Enhanced Progress Bar */}
+                <div className="relative w-full bg-slate-700/50 rounded-full h-3 overflow-hidden backdrop-blur-sm border border-slate-600/30">
+                  {/* Background shimmer effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+
+                  {/* Progress bar with gradient */}
+                  <motion.div
+                    className={`relative h-3 rounded-full ${
+                      allocationPercentage > 100
+                        ? 'bg-gradient-to-r from-red-500 via-red-400 to-orange-500'
+                        : 'bg-gradient-to-r from-sky-500 via-sky-400 to-violet-500'
                     }`}
-                    style={{ width: `${Math.min(allocationPercentage, 100)}%` }}
-                  ></div>
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(allocationPercentage, 100)}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  >
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-slide" />
+
+                    {/* Glow effect */}
+                    <div className={`absolute inset-0 ${
+                      allocationPercentage > 100 ? 'shadow-lg shadow-red-500/50' : 'shadow-lg shadow-sky-500/50'
+                    }`} />
+                  </motion.div>
                 </div>
-                <div className="text-xs text-slate-500 mt-2">
-                  {allocationPercentage > 100 ? 'Over allocated' :
-                   allocationPercentage >= 80 ? 'Well allocated' : 'Room to allocate more'}
+
+                <div className="flex items-center justify-between mt-2 sm:mt-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${
+                      allocationPercentage > 100 ? 'bg-red-400' : 'bg-sky-400'
+                    } animate-pulse`}></div>
+                    <span className="text-xs sm:text-sm text-slate-400">
+                      {allocationPercentage > 100 ? 'Over allocated' :
+                       allocationPercentage >= 80 ? 'Well allocated' : 'Room to allocate more'}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Category Distribution */}
               <div className="p-3 sm:p-4 bg-slate-700/50 rounded-lg sm:rounded-xl">
