@@ -21,6 +21,13 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
 
   const [name, setName] = useState('');
   const [allocatedAmount, setAllocatedAmount] = useState('');
+  const [isCumulativeMode, setIsCumulativeMode] = useState(false);
+  const [showReallocationPrompt, setShowReallocationPrompt] = useState(false);
+  const [reallocationDetails, setReallocationDetails] = useState<{
+    requestedAmount: number;
+    shortfall: number;
+    availableBudget: number;
+  } | null>(null);
 
   useEffect(() => {
     if (existingCategory) {
@@ -30,6 +37,9 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
       setName('');
       setAllocatedAmount('');
     }
+    setIsCumulativeMode(false);
+    setShowReallocationPrompt(false);
+    setReallocationDetails(null);
   }, [existingCategory]);
 
   const formatAmountForAlert = (amount: number) => {
@@ -42,66 +52,132 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const amount = parseFloat(allocatedAmount);
-    if (name.trim() && !isNaN(amount) && amount >= 0) {
-      if (existingCategory && minAllocatableAmountForEdit !== undefined && amount < minAllocatableAmountForEdit) {
-        addToast(
-          `The new allocation of ${formatAmountForAlert(amount)} is less than the total amount already allocated to its subcategories (${formatAmountForAlert(minAllocatableAmountForEdit)}). ` +
-          `Please adjust subcategories first or increase this category's allocation.`,
-          'error'
-        );
-        return;
-      }
+    const inputAmount = parseFloat(allocatedAmount);
 
-      if (maxAllocatableAmount !== undefined && amount > maxAllocatableAmount) {
-         let message = `The allocation of ${formatAmountForAlert(amount)} exceeds the available funds. `;
-        if (existingCategory) {
-            message += `The maximum you can allocate to this category (based on total income and other categories) is ${formatAmountForAlert(maxAllocatableAmount)}.`;
-        } else {
-            message += `The maximum you can allocate for a new category (based on total income and existing categories) is ${formatAmountForAlert(maxAllocatableAmount)}.`;
-        }
-        message += " Please enter a smaller amount.";
-        addToast(message, 'error');
-        return;
-      }
-      
-      onSubmit(name.trim(), amount);
-    } else {
+    if (!name.trim() || isNaN(inputAmount) || inputAmount < 0) {
       addToast("Please enter a valid name and a non-negative amount.", 'error');
+      return;
+    }
+
+    // Calculate final amount based on cumulative mode
+    let finalAmount = inputAmount;
+    if (existingCategory && isCumulativeMode) {
+      finalAmount = existingCategory.allocatedAmount + inputAmount;
+    }
+
+    // Check minimum allocation for subcategories
+    if (existingCategory && minAllocatableAmountForEdit !== undefined && finalAmount < minAllocatableAmountForEdit) {
+      addToast(
+        `The new allocation of ${formatAmountForAlert(finalAmount)} is less than the total amount already allocated to its subcategories (${formatAmountForAlert(minAllocatableAmountForEdit)}). ` +
+        `Please adjust subcategories first or increase this category's allocation.`,
+        'error'
+      );
+      return;
+    }
+
+    // Check if exceeds available budget
+    if (maxAllocatableAmount !== undefined && finalAmount > maxAllocatableAmount) {
+      const shortfall = finalAmount - maxAllocatableAmount;
+
+      // Check if there's any unallocated budget available (this would be in the parent component)
+      // For now, we'll show the reallocation prompt
+      setReallocationDetails({
+        requestedAmount: finalAmount,
+        shortfall: shortfall,
+        availableBudget: maxAllocatableAmount
+      });
+      setShowReallocationPrompt(true);
+      return;
+    }
+
+    onSubmit(name.trim(), finalAmount);
+  };
+
+  const handleReallocationConfirm = () => {
+    if (reallocationDetails) {
+      // Submit with the requested amount - the parent will handle the reallocation
+      onSubmit(name.trim(), reallocationDetails.requestedAmount);
+      setShowReallocationPrompt(false);
+      setReallocationDetails(null);
     }
   };
 
+  const handleReallocationCancel = () => {
+    setShowReallocationPrompt(false);
+    setReallocationDetails(null);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Category Name Input */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <label
-          htmlFor="categoryName"
-          className="block text-sm font-semibold text-slate-300 mb-2 transition-colors group-focus-within:text-sky-400"
-        >
-          Category Name
-        </label>
-        <div className="relative group">
-          <input
-            type="text"
-            id="categoryName"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 transition-all duration-200 outline-none"
-            placeholder="e.g., Savings, Expenses"
-            required
-          />
-          {/* Focus indicator line */}
-          <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-sky-500 to-violet-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
+    <>
+      {/* Reallocation Confirmation Modal */}
+      {showReallocationPrompt && reallocationDetails && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 p-6 rounded-xl shadow-2xl w-full max-w-md">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 text-amber-400">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div className="flex-grow">
+                <h3 className="text-lg font-semibold text-slate-100 mb-2">
+                  Budget Reallocation Required
+                </h3>
+                <p className="text-slate-300 text-sm leading-relaxed mb-4">
+                  The allocation of {formatAmountForAlert(reallocationDetails.requestedAmount)} exceeds the available budget by {formatAmountForAlert(reallocationDetails.shortfall)}.
+                  {'\n\n'}
+                  Would you like to automatically reallocate {formatAmountForAlert(reallocationDetails.shortfall)} from the remaining available budget to cover this allocation?
+                </p>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={handleReallocationCancel}
+                    className="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all duration-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleReallocationConfirm}
+                    className="px-4 py-2 text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-lg transition-all duration-200"
+                  >
+                    Reallocate Budget
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <p className="mt-1.5 text-xs text-slate-400">
-          Choose a descriptive name for your category
-        </p>
-      </motion.div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Category Name Input */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <label
+            htmlFor="categoryName"
+            className="block text-sm font-semibold text-slate-300 mb-2 transition-colors group-focus-within:text-sky-400"
+          >
+            Category Name
+          </label>
+          <div className="relative group">
+            <input
+              type="text"
+              id="categoryName"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 transition-all duration-200 outline-none"
+              placeholder="e.g., Savings, Expenses"
+              required
+            />
+            {/* Focus indicator line */}
+            <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-sky-500 to-violet-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
+          </div>
+          <p className="mt-1.5 text-xs text-slate-400">
+            Choose a descriptive name for your category
+          </p>
+        </motion.div>
 
       {/* Allocated Amount Input */}
       <motion.div
@@ -113,7 +189,7 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
           htmlFor="categoryAmount"
           className="block text-sm font-semibold text-slate-300 mb-2 transition-colors group-focus-within:text-sky-400"
         >
-          Allocated Amount ({selectedCurrency})
+          {isCumulativeMode && existingCategory ? 'Amount to Add' : 'Allocated Amount'} ({selectedCurrency})
         </label>
         <div className="relative group">
           <input
@@ -130,6 +206,29 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
           {/* Focus indicator line */}
           <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-sky-500 to-violet-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
         </div>
+
+        {/* Cumulative Mode Toggle - Only show when editing */}
+        {existingCategory && (
+          <div className="mt-3 p-3 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 rounded-lg border border-emerald-500/20">
+            <label className="flex items-center cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={isCumulativeMode}
+                onChange={(e) => setIsCumulativeMode(e.target.checked)}
+                className="w-4 h-4 text-emerald-500 bg-slate-700 border-slate-600 rounded focus:ring-emerald-500 focus:ring-2"
+              />
+              <span className="ml-3 text-sm text-slate-300 group-hover:text-white transition-colors">
+                Add to existing amount ({formatAmountForAlert(existingCategory.allocatedAmount)})
+              </span>
+            </label>
+            {isCumulativeMode && allocatedAmount && (
+              <p className="mt-2 text-xs text-emerald-400 font-semibold">
+                New total will be: {formatAmountForAlert(existingCategory.allocatedAmount + (parseFloat(allocatedAmount) || 0))}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="mt-2 p-3 bg-slate-700/30 rounded-lg border border-slate-600/30">
           <p className="text-xs text-slate-400">
             {existingCategory && minAllocatableAmountForEdit !== undefined
@@ -171,6 +270,7 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
         </motion.button>
       </motion.div>
     </form>
+    </>
   );
 };
 

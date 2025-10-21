@@ -272,9 +272,24 @@ const AppContent: React.FC = () => {
 
       const updatedSubcategories = [...parentCategory.subcategories, newSubcategory];
 
-      await FirebaseDataManager.updateCategory(user.uid, parentCategoryId, {
+      // Calculate total subcategory allocations
+      const totalSubcategoryAllocations = updatedSubcategories.reduce((sum, sub) => sum + sub.allocatedAmount, 0);
+
+      // Check if parent category budget needs to be expanded
+      const updateData: any = {
         subcategories: updatedSubcategories
-      });
+      };
+
+      if (totalSubcategoryAllocations > parentCategory.allocatedAmount) {
+        // Automatically expand parent category budget to accommodate subcategories
+        updateData.allocatedAmount = totalSubcategoryAllocations;
+        addToast(
+          `Parent category budget automatically expanded to ${new Intl.NumberFormat(undefined, { style: 'currency', currency: selectedCurrency }).format(totalSubcategoryAllocations)}`,
+          'info'
+        );
+      }
+
+      await FirebaseDataManager.updateCategory(user.uid, parentCategoryId, updateData);
 
       // Real-time listener will update the state automatically
       closeModal();
@@ -283,7 +298,7 @@ const AppContent: React.FC = () => {
       console.error('Error adding subcategory:', error);
       addToast('Failed to add subcategory. Please try again.', 'error');
     }
-  }, [user, categories, closeModal, addToast]);
+  }, [user, categories, closeModal, addToast, selectedCurrency]);
 
   const editSubcategory = useCallback(async (parentCategoryId: string, subcategoryId: string, name: string, allocatedAmount: number) => {
     if (!user?.uid) return;
@@ -296,9 +311,24 @@ const AppContent: React.FC = () => {
         sub.id === subcategoryId ? { ...sub, name, allocatedAmount } : sub
       );
 
-      await FirebaseDataManager.updateCategory(user.uid, parentCategoryId, {
+      // Calculate total subcategory allocations
+      const totalSubcategoryAllocations = updatedSubcategories.reduce((sum, sub) => sum + sub.allocatedAmount, 0);
+
+      // Check if parent category budget needs to be expanded
+      const updateData: any = {
         subcategories: updatedSubcategories
-      });
+      };
+
+      if (totalSubcategoryAllocations > parentCategory.allocatedAmount) {
+        // Automatically expand parent category budget to accommodate subcategories
+        updateData.allocatedAmount = totalSubcategoryAllocations;
+        addToast(
+          `Parent category budget automatically expanded to ${new Intl.NumberFormat(undefined, { style: 'currency', currency: selectedCurrency }).format(totalSubcategoryAllocations)}`,
+          'info'
+        );
+      }
+
+      await FirebaseDataManager.updateCategory(user.uid, parentCategoryId, updateData);
 
       // Real-time listener will update the state automatically
       closeModal();
@@ -307,7 +337,7 @@ const AppContent: React.FC = () => {
       console.error('Error updating subcategory:', error);
       addToast('Failed to update subcategory. Please try again.', 'error');
     }
-  }, [user, categories, closeModal, addToast]);
+  }, [user, categories, closeModal, addToast, selectedCurrency]);
 
   const deleteSubcategory = useCallback((parentCategoryId: string, subcategoryId: string) => {
     const parentCategory = categories.find(cat => cat.id === parentCategoryId);
