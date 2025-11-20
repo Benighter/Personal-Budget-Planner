@@ -29,6 +29,13 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
     availableBudget: number;
   } | null>(null);
 
+  const subcategoriesTotal = existingCategory
+    ? existingCategory.subcategories.reduce((sum, sub) => sum + sub.allocatedAmount, 0)
+    : 0;
+  const remainingInCategory = existingCategory
+    ? existingCategory.allocatedAmount - subcategoriesTotal
+    : 0;
+
   useEffect(() => {
     if (existingCategory) {
       setName(existingCategory.name);
@@ -105,6 +112,28 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
   const handleReallocationCancel = () => {
     setShowReallocationPrompt(false);
     setReallocationDetails(null);
+  };
+
+  const handleReturnRemainingToBudget = () => {
+    if (!existingCategory) return;
+
+    if (!name.trim()) {
+      addToast("Please enter a valid name before adjusting the budget.", 'error');
+      return;
+    }
+
+    const finalAmount = subcategoriesTotal;
+
+    if (minAllocatableAmountForEdit !== undefined && finalAmount < minAllocatableAmountForEdit) {
+      addToast(
+        `The new allocation of ${formatAmountForAlert(finalAmount)} is less than the total amount already allocated to its subcategories (${formatAmountForAlert(minAllocatableAmountForEdit)}). ` +
+        `Please adjust subcategories first or increase this category's allocation.`,
+        'error'
+      );
+      return;
+    }
+
+    onSubmit(name.trim(), finalAmount);
   };
 
   return (
@@ -236,6 +265,27 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
               : `Available for new category: ${formatAmountForAlert(maxAllocatableAmount)}`}
           </p>
         </div>
+
+        {existingCategory && remainingInCategory > 0 && (
+          <motion.div
+            className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <p className="text-xs text-emerald-200">
+                This category has {formatAmountForAlert(remainingInCategory)} not assigned to subcategories.
+              </p>
+              <button
+                type="button"
+                onClick={handleReturnRemainingToBudget}
+                className="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-emerald-900 bg-emerald-400 hover:bg-emerald-300 rounded-lg transition-colors"
+              >
+                Move remainder back to Remaining
+              </button>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Action Buttons */}
