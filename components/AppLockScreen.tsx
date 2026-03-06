@@ -68,6 +68,7 @@ const AppLockScreen: React.FC<AppLockScreenProps> = ({ pinHash, userId, authMeth
   const [error, setError] = useState('');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [shaking, setShaking] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
   const [lockout, setLockout] = useState<LockoutState>(() => loadState());
   const [countdown, setCountdown] = useState<number>(0); // ms remaining
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -116,14 +117,21 @@ const AppLockScreen: React.FC<AppLockScreenProps> = ({ pinHash, userId, authMeth
     init();
   }, []);
 
+  // Play exit animation then hand off to parent
+  const unlock = useCallback(() => {
+    setIsUnlocking(true);
+    setTimeout(() => onUnlocked(), 380);
+  }, [onUnlocked]);
+
   const triggerBiometric = useCallback(async () => {
     const result = await BiometricService.authenticate('Unlock Budget Tracker Pro');
     if (result.success) {
-      onUnlocked();
+      unlock();
     } else {
-      setError('Biometric failed. Enter your PIN.');
+      setError('Fingerprint not recognised. Enter your PIN.');
+      setTimeout(() => setError(''), 3500);
     }
-  }, [onUnlocked]);
+  }, [unlock]);
 
   const shake = () => {
     setShaking(true);
@@ -164,13 +172,13 @@ const AppLockScreen: React.FC<AppLockScreenProps> = ({ pinHash, userId, authMeth
     if (hash === pinHash) {
       // Correct — clear lockout state and unlock
       saveState(fresh());
-      onUnlocked();
+      unlock();
     } else {
       shake();
       setPin('');
       recordWrongAttempt();
     }
-  }, [pinHash, userId, onUnlocked, recordWrongAttempt]);
+  }, [pinHash, userId, unlock, recordWrongAttempt]);
 
   const handleDigit = (digit: string) => {
     if (lockout.lockedUntil) return; // blocked during timeout
@@ -206,7 +214,11 @@ const AppLockScreen: React.FC<AppLockScreenProps> = ({ pinHash, userId, authMeth
 
   return (
     <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center"
-      style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        animation: isUnlocking ? 'unlockExit 0.38s cubic-bezier(0.4, 0, 0.2, 1) forwards' : undefined,
+      }}>
 
       {/* Icon */}
       <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-500 ${isLocked ? 'bg-red-500/20' : 'bg-sky-500/20'}`}>
@@ -250,7 +262,9 @@ const AppLockScreen: React.FC<AppLockScreenProps> = ({ pinHash, userId, authMeth
 
           {/* Attempt counter / error */}
           <div className="h-5 mb-6">
-            {lockout.attemptsInBatch > 0 ? (
+            {error ? (
+              <p className="text-red-400 text-sm text-center">{error}</p>
+            ) : lockout.attemptsInBatch > 0 ? (
               <p className="text-amber-400 text-sm text-center">
                 {remainingAttempts} attempt{remainingAttempts !== 1 ? 's' : ''} remaining
               </p>
@@ -302,6 +316,11 @@ const AppLockScreen: React.FC<AppLockScreenProps> = ({ pinHash, userId, authMeth
           40% { transform: translateX(8px); }
           60% { transform: translateX(-6px); }
           80% { transform: translateX(6px); }
+        }
+        @keyframes unlockExit {
+          0%   { opacity: 1; transform: scale(1);    filter: brightness(1); }
+          40%  { opacity: 1; transform: scale(1.04); filter: brightness(1.6); }
+          100% { opacity: 0; transform: scale(1.12); filter: brightness(2); }
         }
       `}</style>
     </div>
