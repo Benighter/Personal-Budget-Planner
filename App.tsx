@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Category, Subcategory, Transaction, ModalType, CategoryFormProps, SubcategoryFormProps, MonthlyBudget } from './types';
 import { SecuritySettings } from './types';
 import AppLockScreen from './components/AppLockScreen';
+// Dashboard is on the critical path — eager load
 import Dashboard from './components/Dashboard';
-import CategoryManager from './components/CategoryManager';
-import BudgetPlanning from './components/BudgetPlanning';
-import BudgetHistory from './components/BudgetHistory';
-import SavingsCalculator from './components/SavingsCalculator';
+// All other screens are lazy-loaded to shrink the initial bundle
+const CategoryManager = lazy(() => import('./components/CategoryManager'));
+const BudgetPlanning = lazy(() => import('./components/BudgetPlanning'));
+const BudgetHistory = lazy(() => import('./components/BudgetHistory'));
+const SavingsCalculator = lazy(() => import('./components/SavingsCalculator'));
 import Modal from './components/Modal';
 import CategoryForm from './components/CategoryForm';
 import SubcategoryForm from './components/SubcategoryForm';
@@ -650,9 +652,15 @@ const AppContent: React.FC = () => {
   };
 
   const renderCurrentSection = () => {
+    // Minimal loading fallback — shown only while a lazy chunk downloads (first visit only)
+    const SectionFallback = () => (
+      <div className="flex items-center justify-center h-32">
+        <div className="w-8 h-8 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
     switch (currentSection) {
       case 'categories':
-        return <CategoryManager
+        return <Suspense fallback={<SectionFallback />}><CategoryManager
           categories={categories}
           onAddCategory={() => openModal({ type: 'addCategory' })}
           onEditCategory={(cat) => openModal({ type: 'editCategory', category: cat })}
@@ -666,9 +674,9 @@ const AppContent: React.FC = () => {
           areGlobalAmountsHidden={areGlobalAmountsHidden}
           totalIncome={totalIncome}
           unallocatedAmount={unallocatedAmount}
-        />;
+        /></Suspense>;
       case 'reports': return null;
-      case 'planning': return <BudgetPlanning 
+      case 'planning': return <Suspense fallback={<SectionFallback />}><BudgetPlanning 
           monthlyBudgets={monthlyBudgets} 
           onMonthlyBudgetsChange={setMonthlyBudgets} 
           currentCategories={categories} 
@@ -684,9 +692,9 @@ const AppContent: React.FC = () => {
           formatCurrency={formatCurrency}
           isIncomeHidden={isIncomeHidden}
           onToggleIncomeHidden={toggleIncomeHidden}
-        />;
-      case 'history': return <BudgetHistory monthlyBudgets={monthlyBudgets} allTransactions={transactions} formatCurrency={formatCurrency} selectedCurrency={selectedCurrency} />;
-      case 'savings': return <SavingsCalculator />;
+        /></Suspense>;
+      case 'history': return <Suspense fallback={<SectionFallback />}><BudgetHistory monthlyBudgets={monthlyBudgets} allTransactions={transactions} formatCurrency={formatCurrency} selectedCurrency={selectedCurrency} /></Suspense>;
+      case 'savings': return <Suspense fallback={<SectionFallback />}><SavingsCalculator /></Suspense>;
       default: return <Dashboard 
           totalIncome={totalIncome}
           totalAllocated={totalAllocated}

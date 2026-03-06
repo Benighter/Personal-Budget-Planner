@@ -19,7 +19,32 @@ export default defineConfig(({ mode }) => {
       build: {
         outDir: 'dist',
         assetsDir: 'assets',
-        copyPublicDir: true
+        copyPublicDir: true,
+        // Target modern Android WebView (Chromium 90+) — smaller, faster output
+        target: 'es2020',
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              // Core React — always needed
+              'vendor-react': ['react', 'react-dom'],
+              // Framer Motion — large, only needed for animations
+              'vendor-framer': ['framer-motion'],
+              // Firebase — large, load separately
+              'vendor-firebase': [
+                'firebase/app',
+                'firebase/auth',
+                'firebase/firestore',
+                'firebase/storage',
+              ],
+              // Capacitor plugins
+              'vendor-capacitor': [
+                '@capacitor/core',
+                '@capacitor/app',
+                '@capgo/capacitor-native-biometric',
+              ],
+            },
+          },
+        },
       }
     };
 });
