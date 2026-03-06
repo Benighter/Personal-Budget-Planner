@@ -35,3 +35,13 @@ jdk-21.msi
 # Android keystore (keep secure)
 android/budget-tracker-key.keystore
 android/key.properties
+
+# Android SDK (local tooling, not part of source)
+android-sdk/
+
+# Built APK files
+*.apk
+*.aab
+
+# Capacitor/Median bundles
+*.bundle

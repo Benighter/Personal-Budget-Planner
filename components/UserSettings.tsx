@@ -7,6 +7,8 @@ import { UserIcon, PhotoIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, TrashIcon, 
 import { PasswordChangeData, SecuritySettings, BudgetData } from '../types';
 import { FirebaseDataManager } from '../services/firebaseDataManager';
 import { UserDataManager } from '../utils/userDataManager';
+import { BiometricService } from '../services/biometricService';
+import { Capacitor } from '@capacitor/core';
 
 import { ImageUtils } from '../utils/imageUtils';
 import PinInput from './auth/PinInput';
@@ -96,6 +98,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
 
 
     const [isUpdatingSecurity, setIsUpdatingSecurity] = useState(false);
+    const [biometricAvailable, setBiometricAvailable] = useState(false);
 
 
     // Budget data for AboutScreen
@@ -247,6 +250,29 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
   
 
   
+    // Check biometric availability on mount (only on native platform)
+    useEffect(() => {
+      if (!Capacitor.isNativePlatform()) return;
+      BiometricService.isAvailable().then(setBiometricAvailable).catch(() => {});
+    }, []);
+
+    const handleBiometricToggle = async (enabled: boolean) => {
+      if (!user?.uid) return;
+      const updatedSettings = {
+        ...securitySettings,
+        authMethod: (enabled ? 'both' : 'pin') as 'pin' | 'biometric' | 'both',
+      };
+      try {
+        await FirebaseDataManager.updateUserProfile(user.uid, {
+          preferences: { security: updatedSettings }
+        });
+        setSecuritySettings(updatedSettings);
+        addToast(`Fingerprint unlock ${enabled ? 'enabled' : 'disabled'}!`, 'success');
+      } catch {
+        addToast('Failed to update biometric setting', 'error');
+      }
+    };
+
     const handleSecurityToggle = async (enabled: boolean) => {
       if (!user?.uid) return;
 
@@ -491,6 +517,30 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
             </div>
             {securitySettings.isEnabled && (
                 <>
+                    {biometricAvailable && (
+                        <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-full bg-sky-500/20 flex items-center justify-center">
+                                    <FingerPrintIcon className="w-5 h-5 text-sky-400" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-white text-sm">Use Fingerprint</h4>
+                                    <p className="text-xs text-slate-400">Unlock with fingerprint instead of PIN</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleBiometricToggle(securitySettings.authMethod === 'pin'); }}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-800 cursor-pointer ${securitySettings.authMethod !== 'pin' ? 'bg-sky-600' : 'bg-slate-700'}`}
+                                style={{ pointerEvents: 'auto' }}
+                            >
+                                <span
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${securitySettings.authMethod !== 'pin' ? 'translate-x-6' : 'translate-x-1'}`}
+                                    style={{ pointerEvents: 'none' }}
+                                />
+                            </button>
+                        </div>
+                    )}
                     <div className="p-4 bg-slate-800/50 rounded-lg">
                         <button onClick={() => setShowPinSetup(true)} className="w-full text-center text-sky-400 font-semibold hover:text-sky-300">
                             Change PIN
@@ -499,7 +549,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
                 </>
             )}
         </div>
-    ), [securitySettings, handleSecurityToggle, setShowPinSetup]);
+    ), [securitySettings, biometricAvailable, handleSecurityToggle, handleBiometricToggle, setShowPinSetup]);
 
     const DataSection = useCallback(() => (
         <div className="text-center p-4 bg-slate-800/50 rounded-lg border border-red-500/30">

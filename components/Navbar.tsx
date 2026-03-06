@@ -37,7 +37,6 @@ const Navbar: React.FC<NavbarProps> = ({
     { id: 'categories', label: 'Categories', icon: TagIcon, href: '#categories', description: 'Manage categories' },
     { id: 'planning', label: 'Planning', icon: CalendarIcon, href: '#planning', description: 'Budget planning' },
     { id: 'history', label: 'History', icon: DocumentTextIcon, href: '#history', description: 'Transaction history' },
-    { id: 'reports', label: 'Reports', icon: ArrowTrendingUpIcon, href: '#reports', description: 'Analytics & reports' },
     { id: 'savings', label: 'Savings', icon: CurrencyDollarIcon, href: '#savings', description: 'Savings Calculator' },
   ];
 
@@ -52,7 +51,7 @@ const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const handleSectionClick = (sectionId: string) => {
-    if (onSectionChange && (sectionId === 'dashboard' || sectionId === 'categories' || sectionId === 'reports' || sectionId === 'planning' || sectionId === 'history' || sectionId === 'savings')) {
+    if (onSectionChange && (sectionId === 'dashboard' || sectionId === 'categories' || sectionId === 'planning' || sectionId === 'history' || sectionId === 'savings')) {
       onSectionChange(sectionId as AppSection);
     }
   };
@@ -66,11 +65,13 @@ const Navbar: React.FC<NavbarProps> = ({
   if (!user) return null;
 
   return (
-    <nav className={`fixed top-0 inset-x-0 z-40 transition-all duration-200 ${
-      isScrolled
-        ? 'bg-slate-900/95 backdrop-blur-md border-b border-slate-800/50'
-        : 'bg-slate-900/90 backdrop-blur-sm'
-    }`}>
+    <nav
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      className={`fixed top-0 inset-x-0 z-40 transition-all duration-200 ${
+        isScrolled
+          ? 'bg-slate-900/95 backdrop-blur-md border-b border-slate-800/50'
+          : 'bg-slate-900/90 backdrop-blur-sm'
+      }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left Side: Logo and Desktop Navigation */}

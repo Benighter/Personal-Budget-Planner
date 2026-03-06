@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { App as CapacitorApp } from '@capacitor/app';
 import { Category, Subcategory, Transaction, ModalType, CategoryFormProps, SubcategoryFormProps, MonthlyBudget } from './types';
+import { SecuritySettings } from './types';
+import AppLockScreen from './components/AppLockScreen';
 import Dashboard from './components/Dashboard';
 import CategoryManager from './components/CategoryManager';
-import Reports from './components/Reports';
 import BudgetPlanning from './components/BudgetPlanning';
 import BudgetHistory from './components/BudgetHistory';
 import SavingsCalculator from './components/SavingsCalculator';
@@ -41,6 +43,16 @@ const AppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isMigrating, setIsMigrating] = useState<boolean>(false);
   const [migrationProgress, setMigrationProgress] = useState<MigrationProgress | null>(null);
+  const [showExitDialog, setShowExitDialog] = useState<boolean>(false);
+  const [securitySettings, setSecuritySettings] = useState<SecuritySettings | null>(null);
+  const [isLocked, setIsLocked] = useState<boolean>(false);
+  // Ref that always mirrors isLocked — readable inside async callbacks without stale closure issues.
+  // Used to skip the appStateChange re-lock when the lock screen is already visible
+  // (e.g., the biometric dialog closing triggers a spurious resume event).
+  const isLockedRef = useRef(false);
+
+  // Keep isLockedRef in sync with isLocked state
+  useEffect(() => { isLockedRef.current = isLocked; }, [isLocked]);
 
   // Handle app close - save income hidden state
   useEffect(() => {
@@ -146,9 +158,76 @@ const AppContent: React.FC = () => {
     };
   }, [user, addToast]);
 
-  const handleSectionChange = useCallback((section: 'dashboard' | 'categories' | 'reports' | 'planning' | 'history' | 'savings') => navigateToSection(section), [navigateToSection]);
+  const handleSectionChange = useCallback((section: 'dashboard' | 'categories' | 'planning' | 'history' | 'savings') => navigateToSection(section), [navigateToSection]);
   const openModal = useCallback((modalType: ModalType) => setModalState(modalType), []);
   const closeModal = useCallback(() => setModalState(null), []);
+
+  // Load security settings when user is available, and lock immediately if enabled
+  useEffect(() => {
+    if (!user?.uid) { setSecuritySettings(null); setIsLocked(false); return; }
+    FirebaseDataManager.getUserProfile(user.uid).then(profile => {
+      if (profile?.preferences?.security) {
+        const sec = profile.preferences.security;
+        setSecuritySettings(sec);
+        // Lock on cold start / first load if security is set up
+        if (sec.isEnabled && sec.pinHash) {
+          setIsLocked(true);
+        }
+      }
+    }).catch(() => {});
+  }, [user?.uid]);
+
+  // Lock the app when it comes back to foreground (if security is enabled)
+  useEffect(() => {
+    if (!user?.uid) return;
+    let listener: any = null;
+    const register = async () => {
+      listener = await CapacitorApp.addListener('appStateChange', async ({ isActive }) => {
+        if (!isActive) return;
+        // If the lock screen is already showing, do nothing — the user is mid-auth
+        // (the biometric dialog closing fires a spurious resume event; re-locking here
+        // would race against the in-flight verifyIdentity() resolving).
+        if (isLockedRef.current) return;
+        // Re-fetch latest security settings from Firebase on resume so newly set PIN is picked up
+        try {
+          const profile = await FirebaseDataManager.getUserProfile(user.uid);
+          const sec = profile?.preferences?.security;
+          if (sec) setSecuritySettings(sec);
+          if (sec?.isEnabled && sec.pinHash) {
+            setIsLocked(true);
+          }
+        } catch (_) {}
+      });
+    };
+    register();
+    return () => { listener?.remove(); };
+  }, [user?.uid]);
+  useEffect(() => {
+    let listener: any = null;
+    const register = async () => {
+      listener = await CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+        // If a modal is open, close it first
+        if (modalState) {
+          setModalState(null);
+          return;
+        }
+        // If exit dialog is showing, dismiss it
+        if (showExitDialog) {
+          setShowExitDialog(false);
+          return;
+        }
+        // If not on dashboard, go to dashboard
+        if (currentSection !== 'dashboard') {
+          navigateToSection('dashboard');
+          return;
+        }
+        // On dashboard → show exit confirmation
+        setShowExitDialog(true);
+      });
+    };
+    register();
+    return () => { listener?.remove(); };
+  }, [currentSection, modalState, showExitDialog, navigateToSection]);
 
   const formatCurrency = useCallback((amount: number, isIndividualItemHidden?: boolean): string => {
     if (areGlobalAmountsHidden || isIndividualItemHidden) return '••••';
@@ -588,7 +667,7 @@ const AppContent: React.FC = () => {
           totalIncome={totalIncome}
           unallocatedAmount={unallocatedAmount}
         />;
-      case 'reports': return <Reports categories={categories} transactions={transactions} totalIncome={totalIncome} formatCurrency={formatCurrency} selectedCurrency={selectedCurrency} />;
+      case 'reports': return null;
       case 'planning': return <BudgetPlanning 
           monthlyBudgets={monthlyBudgets} 
           onMonthlyBudgetsChange={setMonthlyBudgets} 
@@ -622,10 +701,22 @@ const AppContent: React.FC = () => {
 
 
   
+  // Show lock screen if locked and security is configured
+  if (isLocked && securitySettings?.isEnabled && securitySettings.pinHash && user) {
+    return (
+      <AppLockScreen
+        pinHash={securitySettings.pinHash}
+        userId={user.uid}
+        authMethod={securitySettings.authMethod}
+        onUnlocked={() => setIsLocked(false)}
+      />
+    );
+  }
+
   return (
     <div className="h-screen bg-slate-900 text-white flex flex-col">
       <Navbar currentSection={currentSection} onSectionChange={handleSectionChange} onNewCategory={() => openModal({ type: 'addCategory' })} />
-      <main className={`flex-grow ${currentSection === 'savings' ? 'flex pt-20 md:pt-24 lg:pt-28' : 'overflow-y-auto p-4 md:p-6 lg:p-8 pt-20 md:pt-24 lg:pt-28'}`}>
+      <main className={`flex-grow ${currentSection === 'savings' ? 'flex main-content-savings' : 'overflow-y-auto p-4 md:p-6 lg:p-8 main-content'}`}>
         {renderCurrentSection()}
       </main>
       <Toaster />
@@ -653,6 +744,36 @@ const AppContent: React.FC = () => {
           title={`Delete ${modalState.subcategory.name}?`}
           message={`Are you sure you want to delete the subcategory "${modalState.subcategory.name}" from "${modalState.parentCategoryName}"? This action cannot be undone.`}
         />
+      )}
+
+      {/* Exit confirmation dialog */}
+      {showExitDialog && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-6"
+          onClick={() => setShowExitDialog(false)}
+        >
+          <div
+            className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-xs p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-white mb-2 text-center">Leave app?</h3>
+            <p className="text-slate-400 text-sm text-center mb-6">Are you sure you want to exit Budget Tracker Pro?</p>
+            <div className="flex gap-3">
+              <button
+                className="flex-1 py-3 rounded-xl text-sm font-medium bg-slate-700 text-slate-200 active:bg-slate-600"
+                onClick={() => setShowExitDialog(false)}
+              >
+                Stay
+              </button>
+              <button
+                className="flex-1 py-3 rounded-xl text-sm font-medium bg-red-600 text-white active:bg-red-700"
+                onClick={() => CapacitorApp.exitApp()}
+              >
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
