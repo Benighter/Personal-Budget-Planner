@@ -146,21 +146,28 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
               setSecuritySettings(defaultSecurity);
             }
 
-            // Load profile picture from database first, then fallback to localStorage
-            if (profile?.profilePictureBase64) {
-              setProfilePictureBase64(profile.profilePictureBase64);
-            } else {
-              // Fallback to localStorage for migration
-              const localProfilePicture = localStorage.getItem(`profilePicture_${user.uid}`);
-              if (localProfilePicture) {
-                setProfilePictureBase64(localProfilePicture);
-                // Migrate to database
-                try {
-                  await FirebaseDataManager.updateProfilePicture(user.uid, localProfilePicture);
-                } catch (migrationError) {
-                  console.warn('Failed to migrate profile picture to database:', migrationError);
-                }
+            // Load profile picture: prefer Firebase Storage URL, fall back to localStorage
+            const storageURL = profile?.photoURL && profile.photoURL.includes('firebasestorage')
+              ? profile.photoURL
+              : null;
+            const legacyBase64 = !storageURL ? profile?.profilePictureBase64 : null;
+            const localCache = localStorage.getItem(`profilePicture_${user.uid}`);
+
+            if (storageURL) {
+              setProfilePictureBase64(storageURL);
+              localStorage.setItem(`profilePicture_${user.uid}`, storageURL);
+            } else if (legacyBase64) {
+              // Migrate base64 → Firebase Storage silently
+              setProfilePictureBase64(legacyBase64);
+              try {
+                const url = await FirebaseDataManager.uploadProfilePicture(user.uid, legacyBase64);
+                setProfilePictureBase64(url);
+                localStorage.setItem(`profilePicture_${user.uid}`, url);
+              } catch (migrationError) {
+                console.warn('Failed to migrate profile picture to Firebase Storage:', migrationError);
               }
+            } else if (localCache) {
+              setProfilePictureBase64(localCache);
             }
 
 
@@ -348,17 +355,18 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
       setIsUploadingPicture(true);
 
       try {
-        // Resize and convert to base64
-        const base64 = await ImageUtils.resizeImageToBase64(file, 200, 200, 0.8);
+        // Resize to a data URL first so the upload is always consistent quality
+        const base64 = await ImageUtils.resizeImageToBase64(file, 400, 400, 0.9);
 
-        // Update in Firebase
-        await FirebaseDataManager.updateProfilePicture(user.uid, base64);
+        // Upload to Firebase Storage — returns the public download URL
+        const downloadURL = await FirebaseDataManager.uploadProfilePicture(user.uid, base64);
 
-        // Also store in localStorage for backward compatibility
-        localStorage.setItem(`profilePicture_${user.uid}`, base64);
+        // Cache locally and refresh AuthContext so the navbar updates immediately
+        localStorage.setItem(`profilePicture_${user.uid}`, downloadURL);
+        await updateUserProfile(user.displayName || displayName || '', downloadURL);
 
-        // Update local state
-        setProfilePictureBase64(base64);
+        // Update local settings display
+        setProfilePictureBase64(downloadURL);
         addToast('Profile picture updated successfully!', 'success');
       } catch (error) {
         console.error('Error uploading profile picture:', error);
@@ -374,16 +382,15 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
       if (!user?.uid) return;
 
       try {
-        // Update profile in database to remove picture
-        await FirebaseDataManager.updateUserProfile(user.uid, {
-          profilePictureBase64: null
-        });
+        // Delete from Firebase Storage and clear Firestore photoURL
+        await FirebaseDataManager.deleteProfilePicture(user.uid);
+
+        // Remove local cache and refresh AuthContext so the navbar updates
+        localStorage.removeItem(`profilePicture_${user.uid}`);
+        await updateUserProfile(user.displayName || displayName || '', null);
 
         // Update local state
         setProfilePictureBase64(null);
-
-        // Also remove from localStorage for backward compatibility
-        localStorage.removeItem(`profilePicture_${user.uid}`);
 
         addToast('Profile picture removed successfully!', 'success');
       } catch (error) {
@@ -404,6 +411,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
                                     src={profilePictureBase64}
                                     alt="Profile"
                                     className="w-32 h-32 rounded-3xl object-cover border-4 border-violet-500/30 shadow-2xl group-hover:shadow-violet-500/40 transition-all duration-500 group-hover:scale-105"
+                                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; setProfilePictureBase64(null); }}
                                 />
                                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-violet-400/20 via-sky-500/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                                 {/* Decorative elements */}

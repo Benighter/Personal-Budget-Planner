@@ -20,7 +20,8 @@ import {
   QuerySnapshot,
   Unsubscribe
 } from 'firebase/firestore';
-import { db } from '../firebase.config';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { db, storage } from '../firebase.config';
 import { 
   Category, 
   Transaction, 
@@ -41,7 +42,7 @@ export interface UserPreferences {
 interface FirestoreUserProfile {
   displayName: string;
   photoURL: string | null;
-  profilePictureBase64: string | null; // Store profile picture as base64
+  profilePictureBase64?: string | null; // legacy — kept for migration reads only
   email: string;
   emailVerified: boolean;
   preferences: UserPreferences;
@@ -112,7 +113,6 @@ export class FirebaseDataManager {
       const profileData: FirestoreUserProfile = {
         displayName: user.displayName || '',
         photoURL: user.photoURL,
-        profilePictureBase64: profilePictureBase64 || null,
         email: user.email || '',
         emailVerified: user.emailVerified,
         preferences: {
@@ -167,7 +167,6 @@ export class FirebaseDataManager {
         await setDoc(profileRef, {
           displayName: '',
           photoURL: null,
-          profilePictureBase64: null,
           email: '',
           emailVerified: false,
           preferences: {
@@ -189,25 +188,38 @@ export class FirebaseDataManager {
     }
   }
 
-  static async updateProfilePicture(userId: string, profilePictureBase64: string): Promise<void> {
+  /**
+   * Upload a profile picture to Firebase Storage and save the download URL
+   * in Firestore. Returns the public download URL.
+   */
+  static async uploadProfilePicture(userId: string, imageDataUrl: string): Promise<string> {
     try {
+      // Convert base64 data URL to Blob
+      const response = await fetch(imageDataUrl);
+      const blob = await response.blob();
+
+      // Upload to Firebase Storage: profile-pictures/{uid}/avatar.jpg
+      const storageRef = ref(storage, `profile-pictures/${userId}/avatar.jpg`);
+      const metadata = { contentType: 'image/jpeg' };
+      await uploadBytes(storageRef, blob, metadata);
+
+      // Get the permanent download URL
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // Save URL in Firestore (clear legacy base64 field)
       const profileRef = this.getUserDocRef(userId, 'profile');
-
-      // Check if profile exists first
       const profileSnap = await getDoc(profileRef);
-
       if (profileSnap.exists()) {
-        // Update existing profile
         await updateDoc(profileRef, {
-          profilePictureBase64,
+          photoURL: downloadURL,
+          profilePictureBase64: null,
           updatedAt: serverTimestamp()
         });
       } else {
-        // Create new profile with the picture
         await setDoc(profileRef, {
-          profilePictureBase64,
           displayName: '',
-          photoURL: null,
+          photoURL: downloadURL,
+          profilePictureBase64: null,
           email: '',
           emailVerified: false,
           preferences: {
@@ -222,10 +234,47 @@ export class FirebaseDataManager {
           updatedAt: serverTimestamp()
         });
       }
+
+      return downloadURL;
     } catch (error) {
-      console.error('Error updating profile picture:', error);
-      throw new Error('Failed to update profile picture');
+      console.error('Error uploading profile picture:', error);
+      throw new Error('Failed to upload profile picture');
     }
+  }
+
+  /**
+   * Delete the user's profile picture from Firebase Storage and clear the URL
+   * from Firestore.
+   */
+  static async deleteProfilePicture(userId: string): Promise<void> {
+    try {
+      // Delete from Storage (ignore error if file doesn't exist yet)
+      try {
+        const storageRef = ref(storage, `profile-pictures/${userId}/avatar.jpg`);
+        await deleteObject(storageRef);
+      } catch {
+        // File may not exist — that's fine
+      }
+
+      // Clear in Firestore
+      const profileRef = this.getUserDocRef(userId, 'profile');
+      const profileSnap = await getDoc(profileRef);
+      if (profileSnap.exists()) {
+        await updateDoc(profileRef, {
+          photoURL: null,
+          profilePictureBase64: null,
+          updatedAt: serverTimestamp()
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting profile picture:', error);
+      throw new Error('Failed to delete profile picture');
+    }
+  }
+
+  /** @deprecated Use uploadProfilePicture instead */
+  static async updateProfilePicture(userId: string, profilePictureBase64: string): Promise<string> {
+    return this.uploadProfilePicture(userId, profilePictureBase64);
   }
 
   // Budget Data Management

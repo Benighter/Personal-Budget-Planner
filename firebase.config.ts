@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
@@ -39,6 +40,9 @@ export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
+
+// Initialize Firebase Storage
+export const storage = getStorage(app);
 
 // Initialize Analytics (optional)
 export const analytics = getAnalytics(app);

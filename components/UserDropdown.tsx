@@ -33,6 +33,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
   const { signOut } = useAuth();
   const { addToast, clearAllToasts } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -94,11 +95,12 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
         >
           {/* User Avatar */}
           <div className="relative flex-shrink-0">
-            {user.photoURL ? (
+            {user.photoURL && !avatarError ? (
               <img
                 src={user.photoURL}
                 alt="Profile"
                 className="w-8 h-8 rounded-full object-cover border-2 border-slate-600"
+                onError={() => setAvatarError(true)}
               />
             ) : (
               <div className="w-8 h-8 bg-sky-600 rounded-full flex items-center justify-center border-2 border-slate-600">
@@ -135,11 +137,12 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
             {/* User Info Header */}
             <div className="px-4 py-3 border-b border-slate-700">
               <div className="flex items-center space-x-3">
-                {user.photoURL ? (
+                {user.photoURL && !avatarError ? (
                   <img
                     src={user.photoURL}
                     alt="Profile"
                     className="w-10 h-10 rounded-full object-cover border-2 border-slate-600"
+                    onError={() => setAvatarError(true)}
                   />
                 ) : (
                   <div className="w-10 h-10 bg-sky-600 rounded-full flex items-center justify-center border-2 border-slate-600">

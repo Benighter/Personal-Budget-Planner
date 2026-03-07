@@ -57,11 +57,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [previousAuthState, setPreviousAuthState] = useState<string | null>(null);
   
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Map Firebase user to our User type
+        // Map Firebase user to our User type (may use cached localStorage URL)
         const mappedUser = mapFirebaseUser(firebaseUser);
         setUser(mappedUser);
+
+        // Async: load Firestore profile to get the Firebase Storage photo URL
+        // so it syncs across devices even when localStorage is empty
+        try {
+          const profile = await FirebaseDataManager.getUserProfile(firebaseUser.uid);
+          const storedPhotoURL = profile?.photoURL;
+          if (storedPhotoURL && storedPhotoURL !== mappedUser.photoURL) {
+            // Cache locally so subsequent mapFirebaseUser calls use it
+            localStorage.setItem(`profilePicture_${firebaseUser.uid}`, storedPhotoURL);
+            setUser(prev => prev ? { ...prev, photoURL: storedPhotoURL } : prev);
+          } else if (!storedPhotoURL && profile?.profilePictureBase64) {
+            // Legacy migration: base64 still in Firestore, upload it to Storage silently
+            FirebaseDataManager.uploadProfilePicture(firebaseUser.uid, profile.profilePictureBase64)
+              .then(url => {
+                localStorage.setItem(`profilePicture_${firebaseUser.uid}`, url);
+                setUser(prev => prev ? { ...prev, photoURL: url } : prev);
+              })
+              .catch(err => console.warn('Legacy photo migration failed:', err));
+          }
+        } catch {
+          // Non-critical \u2014 app still works with cached local data
+        }
         
         // Check if this is a new login (not a page refresh)
         // We use localStorage to keep track across page reloads

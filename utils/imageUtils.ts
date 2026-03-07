@@ -42,16 +42,18 @@ export class ImageUtils {
   // Resize image and convert to base64
   static resizeImageToBase64(
     file: File, 
-    maxWidth: number = 200, 
-    maxHeight: number = 200, 
-    quality: number = 0.8
+    maxWidth: number = 400, 
+    maxHeight: number = 400, 
+    quality: number = 0.9
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
+      let objectUrl: string;
 
       img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
         // Calculate new dimensions
         let { width, height } = img;
         
@@ -81,10 +83,13 @@ export class ImageUtils {
         }
       };
 
-      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Failed to load image'));
+      };
       
       // Convert file to object URL
-      const objectUrl = URL.createObjectURL(file);
+      objectUrl = URL.createObjectURL(file);
       img.src = objectUrl;
     });
   }
@@ -100,12 +105,12 @@ export class ImageUtils {
       };
     }
 
-    // Check file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    // Check file size (max 20MB — images are compressed after upload)
+    const maxSize = 20 * 1024 * 1024; // 20MB in bytes
     if (file.size > maxSize) {
       return {
         isValid: false,
-        error: 'File size too large. Please select an image smaller than 5MB.'
+        error: 'File size too large. Please select an image smaller than 20MB.'
       };
     }
 
