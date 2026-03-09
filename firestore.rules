@@ -88,8 +88,7 @@ service cloud.firestore {
       && data.name.size() > 0
       && data.allocatedAmount is number
       && data.allocatedAmount >= 0
-      && data.spentAmount is number
-      && data.spentAmount >= 0
+      && (!('spentAmount' in data) || (data.spentAmount is number && data.spentAmount >= 0))
       && data.subcategories is list
       && (!('isAmountHidden' in data) || data.isAmountHidden is bool)
       && data.createdAt is timestamp

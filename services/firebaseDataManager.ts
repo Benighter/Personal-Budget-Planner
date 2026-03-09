@@ -385,6 +385,8 @@ export class FirebaseDataManager {
       const categoriesRef = this.getUserCollectionRef(userId, 'categories');
       const categoryData: FirestoreCategory = {
         ...category,
+        spentAmount: category.spentAmount || 0,
+        isAmountHidden: category.isAmountHidden || false,
         createdAt: serverTimestamp() as Timestamp,
         updatedAt: serverTimestamp() as Timestamp
       };
