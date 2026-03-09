@@ -1,50 +1,43 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAS8awD9mOr1qR5s2goXDvoPQfgM_VBpDI",
-  authDomain: "personal-budget-planner-581d6.firebaseapp.com",
-  projectId: "personal-budget-planner-581d6",
-  storageBucket: "personal-budget-planner-581d6.firebasestorage.app",
-  messagingSenderId: "790321408904",
-  appId: "1:790321408904:web:465297f0879cf4443c283d",
-  measurementId: "G-5321XQ5XTW"
-};
+const requiredEnvKeys = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID',
+] as const;
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const missingEnvKeys = requiredEnvKeys.filter((key) => !import.meta.env[key]);
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
-
-// Initialize Cloud Firestore and get a reference to the service
-export const db = getFirestore(app);
-
-// Enable offline persistence
-try {
-  // Note: enableNetwork and disableNetwork are used for manual network control
-  // Firestore automatically handles offline persistence
-  console.log('Firestore initialized with offline persistence');
-} catch (error) {
-  console.warn('Failed to enable Firestore offline persistence:', error);
+if (missingEnvKeys.length > 0) {
+  throw new Error(`Missing Firebase environment variables: ${missingEnvKeys.join(', ')}`);
 }
 
-// Initialize Google Auth Provider
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-// Initialize Firebase Storage
 export const storage = getStorage(app);
-
-// Initialize Analytics (optional)
-export const analytics = getAnalytics(app);
+export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
 export default app;

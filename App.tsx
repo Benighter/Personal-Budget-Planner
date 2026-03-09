@@ -24,7 +24,6 @@ import Toaster from './components/Toaster';
 import MedianBridge from './components/MedianBridge';
 import { FirebaseDataManager } from './services/firebaseDataManager';
 import { DataMigrationService, MigrationProgress } from './services/dataMigrationService';
-import { UserDataManager } from './utils/userDataManager';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -713,9 +712,8 @@ const AppContent: React.FC = () => {
   if (isLocked && securitySettings?.isEnabled && securitySettings.pinHash && user) {
     return (
       <AppLockScreen
-        pinHash={securitySettings.pinHash}
+        securitySettings={securitySettings}
         userId={user.uid}
-        authMethod={securitySettings.authMethod}
         onUnlocked={() => setIsLocked(false)}
       />
     );

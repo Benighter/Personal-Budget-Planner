@@ -1,7 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -9,104 +8,204 @@ service cloud.firestore {
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
-    
-    function isValidUser(userId) {
-      return userId is string && userId.size() > 0;
-    }
-    
 
-    
-    // User profile and data rules
+    function validSecuritySettings(security) {
+      return security is map
+        && security.keys().hasOnly([
+          'isEnabled',
+          'authMethod',
+          'pinHash',
+          'pinSalt',
+          'pinIterations',
+          'pinVersion',
+          'pinLength',
+          'requireOnAppResume',
+          'requireOnSensitiveActions'
+        ])
+        && security.isEnabled is bool
+        && security.authMethod in ['pin', 'biometric', 'both']
+        && (!('pinHash' in security) || security.pinHash is string)
+        && (!('pinSalt' in security) || security.pinSalt is string)
+        && (!('pinIterations' in security) || security.pinIterations is int)
+        && (!('pinVersion' in security) || security.pinVersion is string)
+        && (!('pinLength' in security) || security.pinLength is int)
+        && security.requireOnAppResume is bool
+        && security.requireOnSensitiveActions is bool;
+    }
+
+    function validProfileData(data) {
+      return data.keys().hasOnly([
+        'displayName',
+        'photoURL',
+        'profilePictureBase64',
+        'email',
+        'emailVerified',
+        'preferences',
+        'createdAt',
+        'updatedAt'
+      ])
+      && data.displayName is string
+      && (data.photoURL == null || data.photoURL is string)
+      && (!('profilePictureBase64' in data) || data.profilePictureBase64 == null || data.profilePictureBase64 is string)
+      && data.email is string
+      && data.emailVerified is bool
+      && data.preferences is map
+      && data.preferences.keys().hasOnly(['security'])
+      && validSecuritySettings(data.preferences.security)
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function validBudgetData(data) {
+      return data.keys().hasOnly([
+        'totalIncome',
+        'selectedCurrency',
+        'areGlobalAmountsHidden',
+        'isIncomeHidden',
+        'createdAt',
+        'updatedAt'
+      ])
+      && data.totalIncome is number
+      && data.totalIncome >= 0
+      && data.selectedCurrency is string
+      && data.areGlobalAmountsHidden is bool
+      && data.isIncomeHidden is bool
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function validCategoryData(data) {
+      return data.keys().hasOnly([
+        'name',
+        'allocatedAmount',
+        'spentAmount',
+        'subcategories',
+        'isAmountHidden',
+        'createdAt',
+        'updatedAt'
+      ])
+      && data.name is string
+      && data.name.size() > 0
+      && data.allocatedAmount is number
+      && data.allocatedAmount >= 0
+      && data.spentAmount is number
+      && data.spentAmount >= 0
+      && data.subcategories is list
+      && (!('isAmountHidden' in data) || data.isAmountHidden is bool)
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function validTransactionData(data) {
+      return data.keys().hasOnly([
+        'amount',
+        'description',
+        'categoryId',
+        'subcategoryId',
+        'date',
+        'type',
+        'tags',
+        'createdAt',
+        'updatedAt'
+      ])
+      && data.amount is number
+      && data.amount > 0
+      && data.description is string
+      && data.description.size() > 0
+      && data.categoryId is string
+      && (!('subcategoryId' in data) || data.subcategoryId is string)
+      && data.date is timestamp
+      && data.type in ['expense', 'income']
+      && (!('tags' in data) || data.tags is list)
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function validMonthlyBudgetData(data) {
+      return data.keys().hasOnly([
+        'month',
+        'year',
+        'monthName',
+        'totalIncome',
+        'categories',
+        'transactions',
+        'isTemplate',
+        'createdAt',
+        'updatedAt'
+      ])
+      && data.month is string
+      && data.year is int
+      && data.year >= 2020
+      && data.year <= 2100
+      && data.monthName is string
+      && data.totalIncome is number
+      && data.totalIncome >= 0
+      && data.categories is list
+      && data.transactions is list
+      && (!('isTemplate' in data) || data.isTemplate is bool)
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function validBudgetTemplateData(data) {
+      return data.keys().hasOnly([
+        'name',
+        'description',
+        'totalIncome',
+        'categories',
+        'createdAt',
+        'updatedAt'
+      ])
+      && data.name is string
+      && data.name.size() > 0
+      && (!('description' in data) || data.description is string)
+      && data.totalIncome is number
+      && data.totalIncome >= 0
+      && data.categories is list
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
     match /users/{userId} {
-      // Allow read/write only for the authenticated user
-      allow read, write: if isOwner(userId);
+      allow read, write: if false;
       
-      // User profile document (uses fixed document ID 'data')
       match /profile/data {
-        allow read, write: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validProfileData(request.resource.data);
+        allow delete: if isOwner(userId);
       }
       
-      // Budget data document (uses fixed document ID 'data')
       match /budgetData/data {
-        allow read, write: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validBudgetData(request.resource.data);
+        allow delete: if isOwner(userId);
       }
       
-      // Categories collection
       match /categories/{categoryId} {
-        allow read, write: if isOwner(userId);
-        
-        // Validate category data structure
-        allow create, update: if isOwner(userId)
-          && request.resource.data.keys().hasAll(['id', 'name', 'allocatedAmount', 'spentAmount', 'subcategories', 'createdAt', 'updatedAt'])
-          && request.resource.data.id is string
-          && request.resource.data.name is string
-          && request.resource.data.name.size() > 0
-          && request.resource.data.allocatedAmount is number
-          && request.resource.data.allocatedAmount >= 0
-          && request.resource.data.spentAmount is number
-          && request.resource.data.spentAmount >= 0
-          && request.resource.data.subcategories is list
-          && request.resource.data.createdAt is timestamp
-          && request.resource.data.updatedAt is timestamp;
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validCategoryData(request.resource.data);
+        allow delete: if isOwner(userId);
       }
       
-      // Transactions collection
       match /transactions/{transactionId} {
-        allow read, write: if isOwner(userId);
-        
-        // Validate transaction data structure
-        allow create, update: if isOwner(userId)
-          && request.resource.data.keys().hasAll(['id', 'amount', 'description', 'categoryId', 'date', 'type', 'createdAt', 'updatedAt'])
-          && request.resource.data.id is string
-          && request.resource.data.amount is number
-          && request.resource.data.amount > 0
-          && request.resource.data.description is string
-          && request.resource.data.categoryId is string
-          && request.resource.data.date is timestamp
-          && request.resource.data.type in ['expense', 'income']
-          && request.resource.data.createdAt is timestamp
-          && request.resource.data.updatedAt is timestamp;
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validTransactionData(request.resource.data);
+        allow delete: if isOwner(userId);
       }
       
-      // Monthly budgets collection
       match /monthlyBudgets/{budgetId} {
-        allow read, write: if isOwner(userId);
-        
-        // Validate monthly budget data structure
-        allow create, update: if isOwner(userId)
-          && request.resource.data.keys().hasAll(['id', 'month', 'year', 'monthName', 'totalIncome', 'categories', 'transactions', 'createdAt', 'updatedAt'])
-          && request.resource.data.id is string
-          && request.resource.data.month is string
-          && request.resource.data.year is int
-          && request.resource.data.year >= 2020 && request.resource.data.year <= 2100
-          && request.resource.data.monthName is string
-          && request.resource.data.totalIncome is number
-          && request.resource.data.totalIncome >= 0
-          && request.resource.data.categories is list
-          && request.resource.data.transactions is list
-          && request.resource.data.createdAt is timestamp
-          && request.resource.data.updatedAt is timestamp;
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validMonthlyBudgetData(request.resource.data);
+        allow delete: if isOwner(userId);
       }
       
-      // Budget templates collection
       match /budgetTemplates/{templateId} {
-        allow read, write: if isOwner(userId);
-        
-        // Validate budget template data structure
-        allow create, update: if isOwner(userId)
-          && request.resource.data.keys().hasAll(['id', 'name', 'totalIncome', 'categories', 'createdAt', 'updatedAt'])
-          && request.resource.data.id is string
-          && request.resource.data.name is string
-          && request.resource.data.name.size() > 0
-          && request.resource.data.totalIncome is number
-          && request.resource.data.totalIncome >= 0
-          && request.resource.data.categories is list
-          && request.resource.data.createdAt is timestamp
-          && request.resource.data.updatedAt is timestamp;
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validBudgetTemplateData(request.resource.data);
+        allow delete: if isOwner(userId);
       }
     }
     
-    // Deny all other access
     match /{document=**} {
       allow read, write: if false;
     }

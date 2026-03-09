@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import {
   User as FirebaseUser,
   createUserWithEmailAndPassword,
@@ -15,9 +15,6 @@ import {
 import { auth, googleProvider } from '../firebase.config';
 import { User, AuthContextType } from '../types';
 import { FirebaseDataManager } from '../services/firebaseDataManager';
-import { UserDataManager } from '../utils/userDataManager';
-import { Capacitor } from '@capacitor/core';
-import { App } from '@capacitor/app';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -33,16 +30,12 @@ export const useAuth = () => {
   return context;
 };
 
-// Helper function to convert Firebase User to our User type
-const mapFirebaseUser = (firebaseUser: FirebaseUser): User => {
-  // Check for custom profile picture in localStorage
-  const customPhotoURL = localStorage.getItem(`profilePicture_${firebaseUser.uid}`);
-
+const mapFirebaseUser = (firebaseUser: FirebaseUser, photoURLOverride?: string | null): User => {
   return {
     uid: firebaseUser.uid,
     email: firebaseUser.email,
     displayName: firebaseUser.displayName,
-    photoURL: customPhotoURL || firebaseUser.photoURL,
+    photoURL: photoURLOverride === undefined ? firebaseUser.photoURL : photoURLOverride,
     emailVerified: firebaseUser.emailVerified,
   };
 };
@@ -51,49 +44,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [requiresSecurityAuth, setRequiresSecurityAuth] = useState(false);
-
-  // Store the previous auth state for detecting new login
-  const [previousAuthState, setPreviousAuthState] = useState<string | null>(null);
+  const hasHandledInitialAuthRef = useRef(false);
+  const lastAuthenticatedUserRef = useRef<string | null>(null);
   
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Map Firebase user to our User type (may use cached localStorage URL)
-        const mappedUser = mapFirebaseUser(firebaseUser);
-        setUser(mappedUser);
+        setUser(mapFirebaseUser(firebaseUser));
 
-        // Async: load Firestore profile to get the Firebase Storage photo URL
-        // so it syncs across devices even when localStorage is empty
         try {
           const profile = await FirebaseDataManager.getUserProfile(firebaseUser.uid);
           const storedPhotoURL = profile?.photoURL;
-          if (storedPhotoURL && storedPhotoURL !== mappedUser.photoURL) {
-            // Cache locally so subsequent mapFirebaseUser calls use it
-            localStorage.setItem(`profilePicture_${firebaseUser.uid}`, storedPhotoURL);
-            setUser(prev => prev ? { ...prev, photoURL: storedPhotoURL } : prev);
+          if (storedPhotoURL) {
+            setUser(mapFirebaseUser(firebaseUser, storedPhotoURL));
           } else if (!storedPhotoURL && profile?.profilePictureBase64) {
-            // Legacy migration: base64 still in Firestore, upload it to Storage silently
             FirebaseDataManager.uploadProfilePicture(firebaseUser.uid, profile.profilePictureBase64)
               .then(url => {
-                localStorage.setItem(`profilePicture_${firebaseUser.uid}`, url);
-                setUser(prev => prev ? { ...prev, photoURL: url } : prev);
+                setUser(mapFirebaseUser(firebaseUser, url));
               })
-              .catch(err => console.warn('Legacy photo migration failed:', err));
+              .catch(() => undefined);
           }
         } catch {
-          // Non-critical \u2014 app still works with cached local data
+          // Non-critical. Authentication still succeeds without an enriched profile.
         }
-        
-        // Check if this is a new login (not a page refresh)
-        // We use localStorage to keep track across page reloads
-        const currentAuthState = localStorage.getItem('authState');
-        if (currentAuthState !== firebaseUser.uid) {
-          // This is a new login
-          localStorage.setItem('authState', firebaseUser.uid);
-          
-          // Show welcome toast after successful login
-          // Delay to ensure it appears after navigation completes
+
+        if (hasHandledInitialAuthRef.current && lastAuthenticatedUserRef.current !== firebaseUser.uid) {
           setTimeout(() => {
             const displayName = firebaseUser.displayName || 
                                firebaseUser.email?.split('@')[0] || 'User';
@@ -104,80 +79,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }, 500);
         }
 
-        // Check if security authentication is required
-        const shouldRequireAuth = UserDataManager.shouldRequireAuthentication(firebaseUser.uid);
-        setRequiresSecurityAuth(shouldRequireAuth);
+        hasHandledInitialAuthRef.current = true;
+        lastAuthenticatedUserRef.current = firebaseUser.uid;
       } else {
-        // No user is signed in
         setUser(null);
-        setRequiresSecurityAuth(false);
-        
-        // Clear auth state when logging out
-        localStorage.removeItem('authState');
+        hasHandledInitialAuthRef.current = true;
+        lastAuthenticatedUserRef.current = null;
       }
       setLoading(false);
     });
 
     return unsubscribe;
   }, []);
-
-  // Set up app state listeners for mobile
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform() || !user) return;
-
-    const handleAppStateChange = async (state: any) => {
-      console.log('App state changed:', state);
-      console.log('Current user:', user?.uid);
-      console.log('Security enabled:', UserDataManager.isSecurityEnabled(user.uid));
-
-      if (state.isActive) {
-        // App came to foreground
-        console.log('App came to foreground, checking if authentication is required');
-
-        // Check if security authentication is required
-        const shouldRequireAuth = UserDataManager.shouldRequireAuthentication(user.uid);
-        console.log('Should require auth:', shouldRequireAuth);
-
-        if (shouldRequireAuth) {
-          console.log('Setting requiresSecurityAuth to true');
-          setRequiresSecurityAuth(true);
-        } else {
-          console.log('Authentication not required, setting app in foreground');
-          UserDataManager.setAppInForeground(user.uid);
-        }
-      } else {
-        // App went to background
-        console.log('App went to background, setting background state');
-        UserDataManager.setAppInBackground(user.uid);
-      }
-    };
-
-    let cleanup: (() => void) | undefined;
-    
-    // Add the app state change listener
-    const setupListener = async () => {
-      const listener = await App.addListener('appStateChange', handleAppStateChange);
-      cleanup = () => {
-        listener.remove();
-      };
-    };
-    
-    setupListener();
-
-    // Check authentication requirement on initial mount
-    const checkInitialAuth = async () => {
-      const shouldRequireAuth = UserDataManager.shouldRequireAuthentication(user.uid);
-      if (shouldRequireAuth) {
-        setRequiresSecurityAuth(true);
-      }
-    };
-    
-    checkInitialAuth();
-
-    return () => {
-      if (cleanup) cleanup();
-    };
-  }, [user]);
 
   const signUp = async (email: string, password: string, displayName?: string): Promise<void> => {
     try {
@@ -225,24 +138,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async (): Promise<void> => {
     try {
       setIsLoggingOut(true);
-      // Save income hidden state to true for security before logging out
       if (auth.currentUser) {
         const userId = auth.currentUser.uid;
-        const userData = UserDataManager.loadUserData(userId);
-        
-        // Set income to hidden
-        userData.isIncomeHidden = true;
-        
-        // Save the updated data
-        UserDataManager.saveUserData(userId, userData);
+        await FirebaseDataManager.updateBudgetData(userId, { isIncomeHidden: true });
       }
       
       await firebaseSignOut(auth);
-
-
-
-      // Note: We don't clear user data here to preserve it for when they sign back in
-      // Data is only cleared when explicitly requested by the user
     } catch (error: any) {
       throw new Error('Failed to sign out. Please try again.');
     } finally {
@@ -261,25 +162,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       throw new Error('Failed to clear user data. Please try again.');
     }
-  };
-
-  // Security authentication methods
-  const completeSecurityAuth = (): void => {
-    setRequiresSecurityAuth(false);
-    if (user) {
-      UserDataManager.setAppInForeground(user.uid);
-      
-      // Show welcome back message after security auth (subtle, not with name)
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('show-toast', { 
-          detail: { message: `Authentication successful`, type: 'success', duration: 2000 }
-        }));
-      }, 300);
-    }
-  };
-
-  const requireSecurityAuth = (): void => {
-    setRequiresSecurityAuth(true);
   };
 
   const resetPassword = async (email: string): Promise<void> => {
@@ -301,17 +183,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         displayName: displayName,
       });
 
-      // Handle profile picture
-      if (photoURL) {
-        // Store base64 image in localStorage
-        localStorage.setItem(`profilePicture_${auth.currentUser.uid}`, photoURL);
-      } else if (photoURL === null) {
-        // Remove profile picture from localStorage
-        localStorage.removeItem(`profilePicture_${auth.currentUser.uid}`);
-      }
-
-      // Update local state
-      setUser(mapFirebaseUser(auth.currentUser));
+      setUser((previousUser) => previousUser ? {
+        ...previousUser,
+        displayName,
+        photoURL: photoURL === undefined ? previousUser.photoURL : photoURL,
+      } : previousUser);
     } catch (error: any) {
       throw new Error(getAuthErrorMessage(error.code) || 'Failed to update profile.');
     }
@@ -355,7 +231,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     loading,
     isLoggingOut,
-    requiresSecurityAuth,
     signIn,
     signUp,
     signInWithGoogle,
@@ -364,8 +239,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateUserProfile,
     updateUserPassword,
     clearUserData,
-    completeSecurityAuth,
-    requireSecurityAuth,
   };
 
   return (

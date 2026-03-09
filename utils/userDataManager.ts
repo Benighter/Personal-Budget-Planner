@@ -335,30 +335,23 @@ export class UserDataManager {
         requireOnSensitiveActions: false
       };
 
-      console.log('📋 Loading user preferences for:', userId, 'saved:', savedPreferences);
-
       if (savedPreferences) {
         const parsedPreferences = JSON.parse(savedPreferences);
-        // Ensure all required properties exist with defaults
-        const preferences = {
+        return {
           security: {
             ...defaultSecurity,
             ...parsedPreferences.security
           },
           ...parsedPreferences
         };
-        console.log('📋 Loaded preferences:', preferences);
-        return preferences;
       }
 
-      const defaultPreferences = {
+      return {
         security: defaultSecurity
       };
-      console.log('📋 Using default preferences:', defaultPreferences);
-      return defaultPreferences;
     } catch (error) {
       console.error("Error loading user preferences:", error);
-      const errorPreferences = {
+      return {
         security: {
           isEnabled: false,
           authMethod: 'pin',
@@ -366,78 +359,6 @@ export class UserDataManager {
           requireOnSensitiveActions: false
         }
       };
-      console.log('📋 Using error fallback preferences:', errorPreferences);
-      return errorPreferences;
     }
-  }
-
-  static saveUserPreferences(userId: string, preferences: UserPreferences): void {
-    localStorage.setItem(this.getUserKey(userId, 'preferences'), JSON.stringify(preferences));
-  }
-
-
-
-  // Security preferences management
-  static updateSecuritySettings(userId: string, securitySettings: SecuritySettings): void {
-    const preferences = this.loadUserPreferences(userId);
-    preferences.security = securitySettings;
-    this.saveUserPreferences(userId, preferences);
-  }
-
-  static getSecuritySettings(userId: string): SecuritySettings {
-    const preferences = this.loadUserPreferences(userId);
-    return preferences.security;
-  }
-
-  static isSecurityEnabled(userId: string): boolean {
-    const securitySettings = this.getSecuritySettings(userId);
-    return securitySettings.isEnabled;
-  }
-
-  // App state management for security
-  static setAppInBackground(userId: string): void {
-    const backgroundTime = Date.now().toString();
-    localStorage.setItem(this.getUserKey(userId, 'appInBackground'), 'true');
-    localStorage.setItem(this.getUserKey(userId, 'backgroundTime'), backgroundTime);
-    console.log('App set to background for user:', userId, 'at time:', backgroundTime);
-  }
-
-  static setAppInForeground(userId: string): void {
-    console.log('App set to foreground for user:', userId);
-    localStorage.removeItem(this.getUserKey(userId, 'appInBackground'));
-    localStorage.removeItem(this.getUserKey(userId, 'backgroundTime'));
-  }
-
-  static shouldRequireAuthentication(userId: string): boolean {
-    const wasInBackground = localStorage.getItem(this.getUserKey(userId, 'appInBackground'));
-    const backgroundTime = localStorage.getItem(this.getUserKey(userId, 'backgroundTime'));
-
-    console.log('Checking authentication requirement:', {
-      userId,
-      wasInBackground,
-      backgroundTime,
-      currentTime: Date.now()
-    });
-
-    if (!wasInBackground || !backgroundTime) {
-      console.log('No background state found, authentication not required');
-      return false;
-    }
-
-    const securitySettings = this.getSecuritySettings(userId);
-    console.log('Security settings:', securitySettings);
-
-    if (!securitySettings.isEnabled || !securitySettings.requireOnAppResume) {
-      console.log('Security not enabled or app resume auth not required');
-      return false;
-    }
-
-    // Require authentication if app was in background for more than 1 second
-    // This makes it more responsive for testing
-    const timeDiff = Date.now() - parseInt(backgroundTime);
-    const shouldRequire = timeDiff > 1000; // 1 second
-
-    console.log('Time difference:', timeDiff, 'ms, should require auth:', shouldRequire);
-    return shouldRequire;
   }
 }

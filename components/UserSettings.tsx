@@ -8,6 +8,7 @@ import { PasswordChangeData, SecuritySettings, BudgetData } from '../types';
 import { FirebaseDataManager } from '../services/firebaseDataManager';
 import { UserDataManager } from '../utils/userDataManager';
 import { BiometricService } from '../services/biometricService';
+import { PinSecurityService } from '../services/pinSecurityService';
 import { Capacitor } from '@capacitor/core';
 
 import { ImageUtils } from '../utils/imageUtils';
@@ -146,28 +147,23 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
               setSecuritySettings(defaultSecurity);
             }
 
-            // Load profile picture: prefer Firebase Storage URL, fall back to localStorage
+            // Load profile picture: prefer Firebase Storage URL, fall back to legacy Firestore data.
             const storageURL = profile?.photoURL && profile.photoURL.includes('firebasestorage')
               ? profile.photoURL
               : null;
             const legacyBase64 = !storageURL ? profile?.profilePictureBase64 : null;
-            const localCache = localStorage.getItem(`profilePicture_${user.uid}`);
 
             if (storageURL) {
               setProfilePictureBase64(storageURL);
-              localStorage.setItem(`profilePicture_${user.uid}`, storageURL);
             } else if (legacyBase64) {
               // Migrate base64 → Firebase Storage silently
               setProfilePictureBase64(legacyBase64);
               try {
                 const url = await FirebaseDataManager.uploadProfilePicture(user.uid, legacyBase64);
                 setProfilePictureBase64(url);
-                localStorage.setItem(`profilePicture_${user.uid}`, url);
               } catch (migrationError) {
                 console.warn('Failed to migrate profile picture to Firebase Storage:', migrationError);
               }
-            } else if (localCache) {
-              setProfilePictureBase64(localCache);
             }
 
 
@@ -309,18 +305,13 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
 
       setIsUpdatingSecurity(true);
       try {
-        // Simple PIN hashing using crypto API
-        const encoder = new TextEncoder();
-        const data = encoder.encode(pin + user.uid); // Add user ID as salt
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const pinHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        const storedPin = await PinSecurityService.createStoredPin(pin, user.uid);
 
         const updatedSettings = {
           ...securitySettings,
           isEnabled: true,
-          pinHash,
-          authMethod: 'pin' as const,
+          ...storedPin,
+          authMethod: securitySettings.authMethod === 'both' ? 'both' as const : 'pin' as const,
           requireOnAppResume: true
         };
 
@@ -361,8 +352,6 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
         // Upload to Firebase Storage — returns the public download URL
         const downloadURL = await FirebaseDataManager.uploadProfilePicture(user.uid, base64);
 
-        // Cache locally and refresh AuthContext so the navbar updates immediately
-        localStorage.setItem(`profilePicture_${user.uid}`, downloadURL);
         await updateUserProfile(user.displayName || displayName || '', downloadURL);
 
         // Update local settings display
@@ -385,8 +374,6 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
         // Delete from Firebase Storage and clear Firestore photoURL
         await FirebaseDataManager.deleteProfilePicture(user.uid);
 
-        // Remove local cache and refresh AuthContext so the navbar updates
-        localStorage.removeItem(`profilePicture_${user.uid}`);
         await updateUserProfile(user.displayName || displayName || '', null);
 
         // Update local state
@@ -657,7 +644,8 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
                     onCancel={() => setShowPinSetup(false)}
                     mode="setup"
                     title="Set Up PIN"
-                    subtitle="Choose a 4-digit PIN to secure your budget data"
+                subtitle="Choose a 6-digit PIN to secure your budget data"
+                pinLength={PinSecurityService.defaultPinLength}
                 />
             )}
 

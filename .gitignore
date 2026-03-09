@@ -45,3 +45,9 @@ android-sdk/
 
 # Capacitor/Median bundles
 *.bundle
+
+# Local environment and machine-specific files
+.env
+.env.*
+!.env.example
+android/local.properties

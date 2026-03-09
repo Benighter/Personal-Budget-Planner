@@ -182,7 +182,6 @@ export interface AuthContextType {
   user: User | null;
   loading: boolean;
   isLoggingOut: boolean;
-  requiresSecurityAuth: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName?: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -191,8 +190,6 @@ export interface AuthContextType {
   updateUserProfile: (displayName: string, photoURL?: string | null) => Promise<void>;
   updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
   clearUserData: () => Promise<void>;
-  completeSecurityAuth: () => void;
-  requireSecurityAuth: () => void;
 }
 
 export interface AuthFormData {
@@ -219,6 +216,10 @@ export interface SecuritySettings {
   isEnabled: boolean;
   authMethod: 'pin' | 'biometric' | 'both';
   pinHash?: string; // Hashed PIN for security
+  pinSalt?: string;
+  pinIterations?: number;
+  pinVersion?: string;
+  pinLength?: number;
   requireOnAppResume: boolean;
   requireOnSensitiveActions: boolean;
 }

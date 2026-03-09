@@ -14,8 +14,7 @@ export class BiometricService {
     try {
       const result = await NativeBiometric.isAvailable();
       return result.isAvailable;
-    } catch (error) {
-      console.error('Error checking biometric availability:', error);
+    } catch {
       return false;
     }
   }
@@ -31,8 +30,7 @@ export class BiometricService {
     try {
       const result = await NativeBiometric.isAvailable();
       return result.biometryType || null;
-    } catch (error) {
-      console.error('Error getting biometry type:', error);
+    } catch {
       return null;
     }
   }
@@ -72,8 +70,6 @@ export class BiometricService {
         biometryType: typeName
       };
     } catch (error: any) {
-      console.error('Biometric authentication error:', error);
-      
       // Handle specific error cases
       let errorMessage = 'Biometric authentication failed';
       
@@ -144,8 +140,7 @@ export class BiometricService {
       // Some devices/implementations don't have this property, so we'll assume biometrics are 
       // enrolled if the library reports they're available
       return { canUse: true };
-    } catch (error) {
-      console.error('Error checking biometric capability:', error);
+    } catch {
       return {
         canUse: false,
         reason: 'Unable to check biometric availability'
@@ -160,10 +155,7 @@ export class BiometricService {
    */
   static async hashPin(pin: string): Promise<string> {
     if (typeof window === 'undefined' || !window.crypto || !window.crypto.subtle) {
-      // Fallback for non-secure contexts (e.g., some test environments)
-      // This is NOT secure and should not be used in production if crypto is expected.
-      console.warn('SubtleCrypto not available. Using a non-secure fallback for hashing.');
-      return `fallback_${pin}`;
+      throw new Error('Secure cryptography is not available on this device.');
     }
 
     const encoder = new TextEncoder();
