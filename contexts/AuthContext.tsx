@@ -58,11 +58,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (storedPhotoURL) {
             setUser(mapFirebaseUser(firebaseUser, storedPhotoURL));
           } else if (!storedPhotoURL && profile?.profilePictureBase64) {
-            FirebaseDataManager.uploadProfilePicture(firebaseUser.uid, profile.profilePictureBase64)
-              .then(url => {
-                setUser(mapFirebaseUser(firebaseUser, url));
-              })
-              .catch(() => undefined);
+            setUser(mapFirebaseUser(firebaseUser, profile.profilePictureBase64));
           }
         } catch {
           // Non-critical. Authentication still succeeds without an enriched profile.

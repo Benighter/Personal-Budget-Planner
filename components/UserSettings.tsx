@@ -156,14 +156,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen, onClose }) => {
             if (storageURL) {
               setProfilePictureBase64(storageURL);
             } else if (legacyBase64) {
-              // Migrate base64 → Firebase Storage silently
               setProfilePictureBase64(legacyBase64);
-              try {
-                const url = await FirebaseDataManager.uploadProfilePicture(user.uid, legacyBase64);
-                setProfilePictureBase64(url);
-              } catch (migrationError) {
-                console.warn('Failed to migrate profile picture to Firebase Storage:', migrationError);
-              }
             }
 
 
