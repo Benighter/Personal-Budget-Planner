@@ -207,7 +207,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
               </div>
               <span className="text-slate-300 font-medium text-xs sm:text-sm lg:text-base truncate">Total Income:</span>
             </div>
-            <span className="font-bold text-sm sm:text-base lg:text-lg xl:text-xl text-emerald-400 flex-shrink-0 ml-2 text-right">
+            <span className="font-bold text-sm sm:text-base lg:text-lg xl:text-xl text-emerald-400 flex-shrink-0 ml-2 text-right truncate max-w-[45%]">
               {!isIncomeHidden ? formatSmartCurrency(totalIncome) : "•••••"}
             </span>
           </div>
@@ -222,7 +222,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
               </div>
               <span className="text-slate-300 font-medium text-xs sm:text-sm lg:text-base truncate">Total Allocated:</span>
             </div>
-            <span className={`font-bold text-sm sm:text-base lg:text-lg xl:text-xl flex-shrink-0 ml-2 text-right ${allocationExceedsIncome && !areGlobalAmountsHidden ? 'text-red-400' : 'text-sky-400'}`}>
+            <span className={`font-bold text-sm sm:text-base lg:text-lg xl:text-xl flex-shrink-0 ml-2 text-right truncate max-w-[45%] ${allocationExceedsIncome && !areGlobalAmountsHidden ? 'text-red-400' : 'text-sky-400'}`}>
               {formatSmartCurrency(totalAllocated)}
             </span>
           </div>
@@ -265,7 +265,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
               </div>
               <span className="text-slate-300 font-medium text-xs sm:text-sm lg:text-base truncate">Remaining to Allocate:</span>
             </div>
-            <span className={`font-bold text-sm sm:text-base lg:text-lg xl:text-xl flex-shrink-0 ml-2 text-right ${unallocatedAmount < 0 && !areGlobalAmountsHidden ? 'text-red-400' : 'text-amber-400'}`}>
+            <span className={`font-bold text-sm sm:text-base lg:text-lg xl:text-xl flex-shrink-0 ml-2 text-right truncate max-w-[45%] ${unallocatedAmount < 0 && !areGlobalAmountsHidden ? 'text-red-400' : 'text-amber-400'}`}>
               {formatSmartCurrency(unallocatedAmount)}
             </span>
           </div>

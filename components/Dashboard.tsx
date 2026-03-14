@@ -258,8 +258,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                           </div>
                           <span className="text-xs text-slate-500 whitespace-nowrap">{cat.subcategories?.length || 0} items</span>
                         </div>
-                        <div className="text-right flex-shrink-0 ml-2">
-                          <p className={`font-bold text-sm bg-gradient-to-r ${gradients[index]} bg-clip-text text-transparent`}>
+                        <div className="text-right flex-shrink-0 ml-2 max-w-[40%]">
+                          <p className={`font-bold text-sm bg-gradient-to-r ${gradients[index]} bg-clip-text text-transparent truncate`}>
                             {formatCurrency(cat.allocatedAmount)}
                           </p>
                           <span className="text-xs text-slate-400 font-medium">#{index + 1}</span>
@@ -289,8 +289,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                           </div>
                         </div>
-                        <div className="text-right flex-shrink-0 ml-4">
-                          <p className={`font-bold text-xl bg-gradient-to-r ${gradients[index]} bg-clip-text text-transparent`}>
+                        <div className="text-right flex-shrink-0 ml-4 max-w-[40%]">
+                          <p className={`font-bold text-lg sm:text-xl bg-gradient-to-r ${gradients[index]} bg-clip-text text-transparent truncate`}>
                             {formatCurrency(cat.allocatedAmount)}
                           </p>
                           <div className="flex items-center justify-end space-x-1 mt-1">

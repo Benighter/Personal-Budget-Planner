@@ -130,15 +130,15 @@ const BudgetHistory: React.FC<BudgetHistoryProps> = ({
                         <CalendarIcon className="w-4 h-4" />
                       </div>
                       <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className={isSelected ? 'text-sky-100' : 'text-slate-400'}>Income:</span>
-                          <span className={isSelected ? 'text-emerald-200' : 'text-emerald-400'}>
+                        <div className="flex justify-between min-w-0">
+                          <span className={`flex-shrink-0 ${isSelected ? 'text-sky-100' : 'text-slate-400'}`}>Income:</span>
+                          <span className={`truncate ml-2 ${isSelected ? 'text-emerald-200' : 'text-emerald-400'}`}>
                             {formatCurrency(budget.totalIncome)}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className={isSelected ? 'text-sky-100' : 'text-slate-400'}>Spent:</span>
-                          <span className={isSelected ? 'text-red-200' : 'text-red-400'}>
+                        <div className="flex justify-between min-w-0">
+                          <span className={`flex-shrink-0 ${isSelected ? 'text-sky-100' : 'text-slate-400'}`}>Spent:</span>
+                          <span className={`truncate ml-2 ${isSelected ? 'text-red-200' : 'text-red-400'}`}>
                             {formatCurrency(totalSpent)}
                           </span>
                         </div>
@@ -174,43 +174,43 @@ const BudgetHistory: React.FC<BudgetHistoryProps> = ({
                 </h3>
                 
                 {budgetStats && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-slate-700 p-4 rounded-lg">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-slate-700 p-3 sm:p-4 rounded-lg min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
-                        <CurrencyDollarIcon className="w-5 h-5 text-emerald-400" />
-                        <span className="text-slate-400 text-sm">Income</span>
+                        <CurrencyDollarIcon className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                        <span className="text-slate-400 text-sm truncate">Income</span>
                       </div>
-                      <p className="text-xl font-bold text-emerald-400">
+                      <p className="text-lg sm:text-xl font-bold text-emerald-400 truncate">
                         {formatCurrency(budgetStats.totalIncome)}
                       </p>
                     </div>
                     
-                    <div className="bg-slate-700 p-4 rounded-lg">
+                    <div className="bg-slate-700 p-3 sm:p-4 rounded-lg min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
-                        <ArrowTrendingDownIcon className="w-5 h-5 text-red-400" />
-                        <span className="text-slate-400 text-sm">Spent</span>
+                        <ArrowTrendingDownIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
+                        <span className="text-slate-400 text-sm truncate">Spent</span>
                       </div>
-                      <p className="text-xl font-bold text-red-400">
+                      <p className="text-lg sm:text-xl font-bold text-red-400 truncate">
                         {formatCurrency(budgetStats.totalSpent)}
                       </p>
                     </div>
                     
-                    <div className="bg-slate-700 p-4 rounded-lg">
+                    <div className="bg-slate-700 p-3 sm:p-4 rounded-lg min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
-                        <ArrowTrendingUpIcon className="w-5 h-5 text-sky-400" />
-                        <span className="text-slate-400 text-sm">Remaining</span>
+                        <ArrowTrendingUpIcon className="w-5 h-5 text-sky-400 flex-shrink-0" />
+                        <span className="text-slate-400 text-sm truncate">Remaining</span>
                       </div>
-                      <p className={`text-xl font-bold ${budgetStats.remaining >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <p className={`text-lg sm:text-xl font-bold truncate ${budgetStats.remaining >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {formatCurrency(budgetStats.remaining)}
                       </p>
                     </div>
                     
-                    <div className="bg-slate-700 p-4 rounded-lg">
+                    <div className="bg-slate-700 p-3 sm:p-4 rounded-lg min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
-                        <ChartBarIcon className="w-5 h-5 text-purple-400" />
-                        <span className="text-slate-400 text-sm">Savings Rate</span>
+                        <ChartBarIcon className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                        <span className="text-slate-400 text-sm truncate">Savings Rate</span>
                       </div>
-                      <p className={`text-xl font-bold ${
+                      <p className={`text-lg sm:text-xl font-bold ${
                         budgetStats.savingsRate > 20 ? 'text-emerald-400' :
                         budgetStats.savingsRate > 10 ? 'text-amber-400' : 'text-red-400'
                       }`}>
@@ -241,18 +241,18 @@ const BudgetHistory: React.FC<BudgetHistoryProps> = ({
                             {percentage.toFixed(1)}%
                           </span>
                         </div>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
+                        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-sm">
+                          <div className="min-w-0">
                             <span className="text-slate-400">Allocated:</span>
-                            <p className="text-sky-400 font-medium">{formatCurrency(category.allocatedAmount)}</p>
+                            <p className="text-sky-400 font-medium truncate">{formatCurrency(category.allocatedAmount)}</p>
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <span className="text-slate-400">Spent:</span>
-                            <p className="text-red-400 font-medium">{formatCurrency(spentAmount)}</p>
+                            <p className="text-red-400 font-medium truncate">{formatCurrency(spentAmount)}</p>
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <span className="text-slate-400">Remaining:</span>
-                            <p className={`font-medium ${category.allocatedAmount - spentAmount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            <p className={`font-medium truncate ${category.allocatedAmount - spentAmount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                               {formatCurrency(category.allocatedAmount - spentAmount)}
                             </p>
                           </div>

@@ -282,13 +282,13 @@ const Reports: React.FC<ReportsProps> = ({
   );
 
   const renderOverview = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       <StatCard title="Total Spent" value={formatCurrency(totals.totalSpent)} icon={TrendingDownIcon} color="text-red-400" />
       <StatCard title="Total Allocated" value={formatCurrency(totals.totalAllocated)} icon={CurrencyDollarIcon} color="text-sky-400" />
       <StatCard title="Savings Rate" value={`${totals.savingsRate.toFixed(1)}%`} icon={TrendingUpIcon} color="text-emerald-400" />
       <StatCard title="Transactions" value={totals.transactionCount.toString()} icon={ChartBarIcon} color="text-amber-400" />
       
-      <div className="lg:col-span-2 xl:col-span-4">
+      <div className="col-span-2 lg:col-span-4">
         <ReportCard title="Spending by Category" icon={ChartBarIcon}>
           {pieChartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -306,13 +306,13 @@ const Reports: React.FC<ReportsProps> = ({
   );
   
   const StatCard = ({ title, value, icon: Icon, color }: { title: string; value: string; icon: React.ElementType; color: string; }) => (
-     <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 flex flex-col justify-between">
-        <div>
+     <div className="bg-slate-800/50 p-4 sm:p-6 rounded-2xl border border-slate-700 flex flex-col justify-between min-w-0 overflow-hidden">
+        <div className="min-w-0">
             <div className="flex items-center justify-between mb-4">
-                <p className="text-slate-400">{title}</p>
-                <Icon className={`w-6 h-6 ${color}`} />
+                <p className="text-slate-400 text-sm truncate">{title}</p>
+                <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color} flex-shrink-0`} />
             </div>
-            <p className={`text-3xl font-bold text-white ${color}`}>{value}</p>
+            <p className={`text-xl sm:text-2xl lg:text-3xl font-bold text-white ${color} truncate`}>{value}</p>
         </div>
     </div>
   );
@@ -339,10 +339,11 @@ const Reports: React.FC<ReportsProps> = ({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-semibold text-slate-200">{cat.categoryName}</span>
-                    <span className="text-sm font-medium text-slate-300">
-                      {formatCurrency(cat.spent)}
+                  <div className="flex justify-between items-center mb-1 gap-2 min-w-0">
+                    <span className="font-semibold text-slate-200 truncate">{cat.categoryName}</span>
+                    <span className="text-sm font-medium text-slate-300 flex-shrink-0 text-right">
+                      <span className="hidden sm:inline">{formatCurrency(cat.spent)}</span>
+                      <span className="sm:hidden">{formatCurrency(cat.spent)}</span>
                       <span className="text-slate-500"> / {formatCurrency(cat.allocated)}</span>
                     </span>
                   </div>
@@ -394,9 +395,9 @@ const Reports: React.FC<ReportsProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ReportCard title="Top Spending Category" icon={CurrencyDollarIcon}>
           {topSpendingCategory && topSpendingCategory.spent > 0 ? (
-            <div>
-              <p className="text-2xl font-bold text-sky-400">{topSpendingCategory.categoryName}</p>
-              <p className="text-4xl font-extrabold text-white mt-2">{formatCurrency(topSpendingCategory.spent)}</p>
+            <div className="min-w-0 overflow-hidden">
+              <p className="text-xl sm:text-2xl font-bold text-sky-400 truncate">{topSpendingCategory.categoryName}</p>
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mt-2 truncate">{formatCurrency(topSpendingCategory.spent)}</p>
               <p className="text-slate-400 mt-1">This is your highest spending area this period.</p>
             </div>
           ) : renderNoData("No spending data available.")}
@@ -406,9 +407,9 @@ const Reports: React.FC<ReportsProps> = ({
           {overspentCategories.length > 0 ? (
             <ul className="space-y-3">
               {overspentCategories.map(cat => (
-                <li key={cat.categoryId} className="flex justify-between items-center">
-                  <span className="text-slate-300">{cat.categoryName}</span>
-                  <span className="font-semibold text-red-400">
+                <li key={cat.categoryId} className="flex justify-between items-center gap-2 min-w-0">
+                  <span className="text-slate-300 truncate">{cat.categoryName}</span>
+                  <span className="font-semibold text-red-400 flex-shrink-0">
                     +{formatCurrency(cat.spent - cat.allocated)}
                   </span>
                 </li>
@@ -481,7 +482,7 @@ const Reports: React.FC<ReportsProps> = ({
                 <button
                   key={period}
                   onClick={() => setSelectedPeriod(period)}
-                  className={`w-1/4 py-2 text-sm font-semibold rounded-full capitalize transition-colors ${
+                  className={`w-1/4 py-2 text-xs sm:text-sm font-semibold rounded-full capitalize transition-colors ${
                     selectedPeriod === period ? 'bg-sky-600 text-white' : 'text-slate-300 hover:bg-slate-700'
                   }`}
                 >

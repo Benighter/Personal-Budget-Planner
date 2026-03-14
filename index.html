@@ -59,6 +59,18 @@
         overscroll-behavior-y: contain;
       }
 
+      /* Prevent horizontal overflow on iPad / mid-size tablets (768-1024px) */
+      .main-content, .main-content-savings {
+        overflow-x: hidden;
+      }
+      /* Tablet-safe text overflow utilities */
+      .currency-value {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+      }
+
       /* Faster tap response: remove 300ms delay on Android */
       * { touch-action: manipulation; }
 

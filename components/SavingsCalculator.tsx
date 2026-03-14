@@ -127,9 +127,9 @@ const InputField = ({ label, value, onChange, placeholder, type = "number" }: { 
 );
 
 const ResultItem = ({ label, value, className = '' }: { label: string, value: string | number, className?: string }) => (
-    <div className="flex justify-between items-center py-2">
-        <p className="text-slate-400">{label}</p>
-        <p className={`text-lg font-bold text-white ${className}`}>{value}</p>
+    <div className="flex justify-between items-center py-2 gap-2 min-w-0">
+        <p className="text-slate-400 truncate flex-shrink">{label}</p>
+        <p className={`text-base sm:text-lg font-bold text-white flex-shrink-0 text-right ${className}`}>{value}</p>
     </div>
 );
 
@@ -253,7 +253,7 @@ const SavingsCalculator: React.FC = () => {
                 <AnimatePresence mode="wait">
                     {step === 'initial' && (
                         <motion.div key="initial" initial="initial" animate="in" exit="out" variants={pageVariants} transition={{ duration: 0.3 }}>
-                            <h1 className="text-4xl font-bold text-center mb-2 text-white">Savings Calculator</h1>
+                            <h1 className="text-3xl sm:text-4xl font-bold text-center mb-2 text-white">Savings Calculator</h1>
                             <p className="text-center text-slate-400 mb-8">What is your primary financial goal?</p>
                             <div className="space-y-4">
                                 <MotionCard onClick={() => setStep('goal')}>

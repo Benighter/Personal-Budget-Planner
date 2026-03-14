@@ -237,11 +237,11 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                 </div>
               </div>
 
-              <div className="text-right">
-                <p className="text-sm font-medium text-white">
+              <div className="text-right min-w-0 flex-shrink">
+                <p className="text-sm font-medium text-white truncate">
                   {formatCurrency(subcategoriesTotal, category.isAmountHidden)}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-400 truncate">
                   of {formatCurrency(category.allocatedAmount, category.isAmountHidden)}
                 </p>
               </div>
@@ -271,12 +271,12 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
               </div>
 
               {/* Remaining Amount Indicator */}
-              <div className="flex justify-between text-xs mt-2">
-                <span className="text-slate-400">
+              <div className="flex justify-between text-xs mt-2 min-w-0 gap-2">
+                <span className="text-slate-400 truncate">
                   Allocated: {formatCurrency(subcategoriesTotal, category.isAmountHidden)}
                 </span>
-                <span className={`font-medium ${remainingInCategory < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                  {remainingInCategory < 0 ? 'Over by ' : 'Remaining: '}
+                <span className={`font-medium truncate text-right ${remainingInCategory < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {remainingInCategory < 0 ? 'Over by ' : 'Rem: '}
                   {formatCurrency(Math.abs(remainingInCategory), category.isAmountHidden)}
                 </span>
               </div>
@@ -367,7 +367,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                           <p className={`font-medium text-slate-200 truncate ${sub.isComplete ? 'line-through' : ''}`}>
                             {sub.name}
                           </p>
-                          <p className={`text-sm text-slate-400 ${sub.isComplete ? 'line-through' : ''}`}>
+                          <p className={`text-sm text-slate-400 truncate ${sub.isComplete ? 'line-through' : ''}`}>
                             {formatCurrency(sub.allocatedAmount, category.isAmountHidden)}
                           </p>
                         </div>

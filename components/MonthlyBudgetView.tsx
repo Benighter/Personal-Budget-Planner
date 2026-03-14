@@ -204,18 +204,18 @@ const MonthlyBudgetView: React.FC<MonthlyBudgetViewProps> = ({
           </div>
 
           {/* Budget Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-slate-700 p-4 rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="bg-slate-700 p-3 sm:p-4 rounded-lg min-w-0">
               <p className="text-slate-400 text-sm">Total Income</p>
-              <p className="text-xl font-bold text-emerald-400">{formatCurrency(editedBudget.totalIncome)}</p>
+              <p className="text-lg sm:text-xl font-bold text-emerald-400 truncate">{formatCurrency(editedBudget.totalIncome)}</p>
             </div>
-            <div className="bg-slate-700 p-4 rounded-lg">
+            <div className="bg-slate-700 p-3 sm:p-4 rounded-lg min-w-0">
               <p className="text-slate-400 text-sm">Total Allocated</p>
-              <p className="text-xl font-bold text-purple-400">{formatCurrency(totalAllocated)}</p>
+              <p className="text-lg sm:text-xl font-bold text-purple-400 truncate">{formatCurrency(totalAllocated)}</p>
             </div>
-            <div className="bg-slate-700 p-4 rounded-lg">
+            <div className="bg-slate-700 p-3 sm:p-4 rounded-lg min-w-0">
               <p className="text-slate-400 text-sm">Remaining</p>
-              <p className={`text-xl font-bold ${remaining >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <p className={`text-lg sm:text-xl font-bold truncate ${remaining >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 {formatCurrency(remaining)}
               </p>
             </div>
@@ -382,11 +382,11 @@ const CategoryEditor: React.FC<CategoryEditorProps> = ({
         </div>
       ) : (
         // Display View
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <p className="text-lg font-semibold text-white">{category.name}</p>
-              <p className="text-sm text-sky-400">{formatCurrency(category.allocatedAmount)} Allocated</p>
+        <div className="flex items-center justify-between min-w-0 gap-2">
+          <div className="flex items-center space-x-4 min-w-0 flex-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-lg font-semibold text-white truncate">{category.name}</p>
+              <p className="text-sm text-sky-400 truncate">{formatCurrency(category.allocatedAmount)} Allocated</p>
             </div>
           </div>
           {isEditing && (
@@ -466,10 +466,10 @@ const SubcategoryEditor: React.FC<SubcategoryEditorProps> = ({
             </div>
         ) : (
             // Display view for subcategory
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-slate-200">{subcategory.name}</p>
-                    <p className="text-sm text-slate-400">{formatCurrency(subcategory.allocatedAmount)}</p>
+            <div className="flex items-center justify-between min-w-0 gap-2">
+                <div className="min-w-0 flex-1">
+                    <p className="text-slate-200 truncate">{subcategory.name}</p>
+                    <p className="text-sm text-slate-400 truncate">{formatCurrency(subcategory.allocatedAmount)}</p>
                 </div>
                 {isEditing && (
                     <div className="flex items-center space-x-2">
