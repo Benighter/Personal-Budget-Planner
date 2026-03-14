@@ -33,7 +33,6 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
   onToggleSubcategoryComplete,
   formatCurrency,
   areGlobalAmountsHidden,
-  totalIncome,
   unallocatedAmount,
 }) => {
   // Track which category is expanded
@@ -103,7 +102,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 sm:p-6 lg:p-8"
+      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8"
       ref={containerRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -116,9 +115,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.6 }}
       >
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="text-center lg:text-left">
-            <div className="flex items-center justify-center lg:justify-start gap-3 mb-3">
+        <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6 xl:gap-8">
+          <div className="text-center xl:text-left xl:flex-1">
+            <div className="flex items-center justify-center xl:justify-start gap-3 mb-3">
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
                   <FolderIcon className="w-6 h-6 text-white" />
@@ -128,10 +127,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
                 </div>
               </div>
               <div>
-                <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
+                <h1 className="text-3xl md:text-[2.5rem] font-bold bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent leading-tight">
                   Budget Categories
                 </h1>
-                <p className="text-slate-400 text-sm sm:text-base mt-1">
+                <p className="text-slate-400 text-sm md:text-base mt-1">
                   Organize your spending into logical groups
                 </p>
               </div>
@@ -140,58 +139,58 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
 
           {/* Statistics Cards */}
           {categories.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full xl:w-auto xl:min-w-[44rem]">
               <motion.div
-                className="bg-gradient-to-br from-emerald-500/10 to-teal-600/10 backdrop-blur-sm border border-emerald-500/20 rounded-xl p-3 lg:p-4"
+                className="bg-gradient-to-br from-emerald-500/10 to-teal-600/10 backdrop-blur-sm border border-emerald-500/20 rounded-xl p-3 md:p-4"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <div className="text-center">
-                  <p className="text-emerald-400 font-bold text-lg lg:text-xl">
+                  <p className="text-emerald-400 font-bold text-base md:text-lg lg:text-xl break-words">
                     {formatCurrency(totalAllocated)}
                   </p>
-                  <p className="text-slate-400 text-xs lg:text-sm">Total Budget</p>
+                  <p className="text-slate-400 text-[11px] md:text-xs lg:text-sm">Total Budget</p>
                 </div>
               </motion.div>
 
               <motion.div
-                className="bg-gradient-to-br from-blue-500/10 to-cyan-600/10 backdrop-blur-sm border border-blue-500/20 rounded-xl p-3 lg:p-4"
+                className="bg-gradient-to-br from-blue-500/10 to-cyan-600/10 backdrop-blur-sm border border-blue-500/20 rounded-xl p-3 md:p-4"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <div className="text-center">
-                  <p className="text-blue-400 font-bold text-lg lg:text-xl">
+                  <p className="text-blue-400 font-bold text-base md:text-lg lg:text-xl break-words">
                     {formatCurrency(totalSpent)}
                   </p>
-                  <p className="text-slate-400 text-xs lg:text-sm">Allocated</p>
+                  <p className="text-slate-400 text-[11px] md:text-xs lg:text-sm">Allocated</p>
                 </div>
               </motion.div>
 
               <motion.div
-                className="bg-gradient-to-br from-purple-500/10 to-pink-600/10 backdrop-blur-sm border border-purple-500/20 rounded-xl p-3 lg:p-4"
+                className="bg-gradient-to-br from-purple-500/10 to-pink-600/10 backdrop-blur-sm border border-purple-500/20 rounded-xl p-3 md:p-4"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <div className="text-center">
-                  <p className="text-purple-400 font-bold text-lg lg:text-xl">
+                  <p className="text-purple-400 font-bold text-base md:text-lg lg:text-xl break-words">
                     {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%
                   </p>
-                  <p className="text-slate-400 text-xs lg:text-sm">Completed</p>
+                  <p className="text-slate-400 text-[11px] md:text-xs lg:text-sm">Completed</p>
                 </div>
               </motion.div>
 
               <motion.div
-                className="bg-gradient-to-br from-amber-500/10 to-orange-600/10 backdrop-blur-sm border border-amber-500/20 rounded-xl p-3 lg:p-4 col-span-2 md:col-span-1"
+                className="bg-gradient-to-br from-amber-500/10 to-orange-600/10 backdrop-blur-sm border border-amber-500/20 rounded-xl p-3 md:p-4 col-span-2 md:col-span-1"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <div className="text-center">
-                  <p className={`font-bold text-lg lg:text-xl ${
+                  <p className={`font-bold text-base md:text-lg lg:text-xl break-words ${
                     unallocatedAmount >= 0 ? 'text-amber-400' : 'text-red-400'
                   }`}>
                     {formatCurrency(unallocatedAmount)}
                   </p>
-                  <p className="text-slate-400 text-xs lg:text-sm">Remaining</p>
+                  <p className="text-slate-400 text-[11px] md:text-xs lg:text-sm">Remaining</p>
                 </div>
               </motion.div>
             </div>
@@ -207,7 +206,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.6 }}
         >
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4">
             {/* Search Bar */}
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -225,11 +224,11 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
             </div>
 
             {/* Sort Dropdown */}
-            <div className="relative">
+            <div className="relative md:w-56 lg:w-64">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'name' | 'amount' | 'progress')}
-                className="appearance-none bg-slate-800/50 border border-slate-600/50 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all cursor-pointer"
+                className="w-full appearance-none bg-slate-800/50 border border-slate-600/50 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all cursor-pointer"
               >
                 <option value="name">Sort by Name</option>
                 <option value="amount">Sort by Amount</option>
@@ -306,7 +305,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-5 xl:gap-6 pb-24 md:pb-28"
           >
             {filteredAndSortedCategories.map((category, index) => (
               <motion.div

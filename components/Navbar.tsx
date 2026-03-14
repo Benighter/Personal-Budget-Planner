@@ -73,9 +73,9 @@ const Navbar: React.FC<NavbarProps> = ({
           : 'bg-slate-900/90 backdrop-blur-sm'
       }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16 md:h-[4.5rem]">
           {/* Left Side: Logo and Desktop Navigation */}
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center gap-4 xl:gap-8 min-w-0">
             <Logo
               size="medium"
               variant="full"
@@ -83,12 +83,12 @@ const Navbar: React.FC<NavbarProps> = ({
             />
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
+            <div className="hidden md:flex items-center space-x-1 lg:space-x-1.5">
               {navItems.map(item => (
                 <motion.button
                   key={item.id}
                   onClick={() => handleSectionClick(item.id)}
-                  className={`relative px-3 py-2 rounded-lg flex items-center space-x-2 text-sm font-medium transition-all duration-200 ${
+                  className={`relative px-2.5 lg:px-3 py-2 rounded-lg flex items-center space-x-1.5 lg:space-x-2 text-xs lg:text-sm font-medium transition-all duration-200 ${
                     currentSection === item.id
                       ? 'text-sky-400'
                       : 'text-slate-300 hover:text-white'
@@ -119,14 +119,14 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Right Side - Network Status, Add Button and User */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 lg:space-x-3 flex-shrink-0">
             {/* Network Status Indicator */}
             <NetworkStatusIndicator className="hidden md:block" />
 
             {/* Add Category Button */}
             <motion.button
               onClick={onNewCategory}
-              className="hidden lg:flex items-center space-x-2 bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 transition-all duration-200 relative overflow-hidden group"
+              className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-semibold shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 transition-all duration-200 relative overflow-hidden group"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >

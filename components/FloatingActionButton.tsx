@@ -45,7 +45,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       aria-label={ariaLabel}
-      className="fixed bottom-8 right-8 z-50 flex items-center justify-center h-14 bg-gradient-to-r from-sky-500 via-violet-500 to-pink-500 text-white rounded-full shadow-2xl shadow-sky-500/50 hover:shadow-3xl hover:shadow-sky-500/60 focus:outline-none focus:ring-4 focus:ring-sky-500/50 overflow-hidden group"
+      className="fixed bottom-5 right-5 md:bottom-6 md:right-6 xl:bottom-8 xl:right-8 z-50 flex items-center justify-center h-14 md:h-12 xl:h-14 bg-gradient-to-r from-sky-500 via-violet-500 to-pink-500 text-white rounded-full shadow-2xl shadow-sky-500/50 hover:shadow-3xl hover:shadow-sky-500/60 focus:outline-none focus:ring-4 focus:ring-sky-500/50 overflow-hidden group"
       initial={{ y: 100, opacity: 0 }}
       animate={{
         y: 0,

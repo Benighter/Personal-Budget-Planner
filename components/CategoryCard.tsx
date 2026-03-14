@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Category, Subcategory } from '../types';
-import ProgressBar from './ProgressBar';
 import {
   PencilIcon,
   TrashIcon,
@@ -10,10 +9,8 @@ import {
   EyeSlashIcon,
   CheckIcon,
   ChevronDownIcon,
-  ChevronUpIcon,
   SparklesIcon,
   TrendingUpIcon,
-  TrendingDownIcon,
   ClockIcon
 } from '../constants';
 
@@ -74,7 +71,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
 
   return (
     <motion.div
-      className={`relative overflow-hidden bg-gradient-to-br ${colors.bg} backdrop-blur-sm border ${colors.border} rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300`}
+      className={`relative h-full overflow-hidden bg-gradient-to-br ${colors.bg} backdrop-blur-sm border ${colors.border} rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300`}
       data-category-id={category.id}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
@@ -88,7 +85,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
       </div>
 
       {/* Main Content */}
-      <div className="relative p-4 sm:p-6">
+      <div className="relative p-4 md:p-5 xl:p-6">
         {/* Header Section */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -115,8 +112,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
 
             {/* Category Info */}
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-lg sm:text-xl font-bold text-white truncate">
+              <div className="flex items-center gap-2 mb-1 min-w-0">
+                <h3 className="text-lg md:text-xl font-bold text-white truncate">
                   {category.name}
                 </h3>
                 {hasSubcategories && (
@@ -137,12 +134,12 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                <p className="text-sm text-slate-300">
+              <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
+                <p className="text-sm text-slate-300 truncate">
                   Budget: {formatCurrency(category.allocatedAmount, category.isAmountHidden)}
                 </p>
                 {hasSubcategories && (
-                  <div className="flex items-center gap-1 text-xs text-slate-400">
+                  <div className="flex items-center gap-1 text-xs text-slate-400 min-w-0">
                     <ClockIcon className="w-3 h-3" />
                     <span>{completedSubcategories}/{category.subcategories.length} done</span>
                   </div>
@@ -217,8 +214,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
             transition={{ delay: 0.1 }}
           >
             {/* Progress Stats */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2 min-w-0">
                 <span className="text-sm font-medium text-slate-300">Progress</span>
                 <div className="flex items-center gap-1">
                   {progressPercentage > 100 ? (
@@ -237,7 +234,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                 </div>
               </div>
 
-              <div className="text-right min-w-0 flex-shrink">
+              <div className="text-right min-w-0 flex-shrink max-w-[45%]">
                 <p className="text-sm font-medium text-white truncate">
                   {formatCurrency(subcategoriesTotal, category.isAmountHidden)}
                 </p>
@@ -334,7 +331,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                       sub.isComplete ? 'opacity-70' : ''
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         {/* Completion Checkbox */}
                         <motion.button
@@ -374,7 +371,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
                         <motion.button
                           onClick={() => onEditSubcategory(category.id, sub)}
                           className="p-2 text-slate-400 hover:text-emerald-400 transition-colors rounded-lg"
