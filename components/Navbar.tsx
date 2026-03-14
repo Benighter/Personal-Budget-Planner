@@ -35,9 +35,7 @@ const Navbar: React.FC<NavbarProps> = ({
   // Enhanced navigation items with better icons (removed Dashboard since logo will handle it)
   const navItems = [
     { id: 'categories', label: 'Categories', icon: TagIcon, href: '#categories', description: 'Manage categories' },
-    { id: 'planning', label: 'Planning', icon: CalendarIcon, href: '#planning', description: 'Budget planning' },
-    { id: 'history', label: 'History', icon: DocumentTextIcon, href: '#history', description: 'Transaction history' },
-    { id: 'savings', label: 'Savings', icon: CurrencyDollarIcon, href: '#savings', description: 'Savings Calculator' },
+    { id: 'planning', label: 'Planning', icon: CalendarIcon, href: '#planning', description: 'Budget planning' }
   ];
 
   // Handle scroll effect for navbar
@@ -51,7 +49,7 @@ const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const handleSectionClick = (sectionId: string) => {
-    if (onSectionChange && (sectionId === 'dashboard' || sectionId === 'categories' || sectionId === 'planning' || sectionId === 'history' || sectionId === 'savings')) {
+    if (onSectionChange && (sectionId === 'dashboard' || sectionId === 'categories' || sectionId === 'planning')) {
       onSectionChange(sectionId as AppSection);
     }
   };
@@ -72,7 +70,7 @@ const Navbar: React.FC<NavbarProps> = ({
           ? 'bg-slate-900/95 backdrop-blur-md border-b border-slate-800/50'
           : 'bg-slate-900/90 backdrop-blur-sm'
       }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-[4.5rem]">
           {/* Left Side: Logo and Desktop Navigation */}
           <div className="flex items-center gap-4 xl:gap-8 min-w-0">

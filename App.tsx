@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { Category, Subcategory, Transaction, ModalType, CategoryFormProps, SubcategoryFormProps, MonthlyBudget } from './types';
 import { SecuritySettings } from './types';
 import AppLockScreen from './components/AppLockScreen';
@@ -189,6 +190,9 @@ const AppContent: React.FC = () => {
         // (the biometric dialog closing fires a spurious resume event; re-locking here
         // would race against the in-flight verifyIdentity() resolving).
         if (isLockedRef.current) return;
+        
+        if (Capacitor.getPlatform() === 'web') return;
+        
         // Re-fetch latest security settings from Firebase on resume so newly set PIN is picked up
         try {
           const profile = await FirebaseDataManager.getUserProfile(user.uid);
