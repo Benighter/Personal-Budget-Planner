@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CategoryFormProps, CategoryFormPropsEdit } from '../types';
 import { useToast } from '../hooks/useToast';
+import TitheCalculator from './TitheCalculator';
 
 const CategoryForm: React.FC<CategoryFormProps> = (props) => {
   const {
@@ -235,6 +236,13 @@ const CategoryForm: React.FC<CategoryFormProps> = (props) => {
           {/* Focus indicator line */}
           <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-sky-500 to-violet-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
         </div>
+
+        <TitheCalculator
+          amount={parseFloat(allocatedAmount) || 0}
+          formatCurrency={formatAmountForAlert}
+          accent="sky"
+          compact
+        />
 
         {/* Cumulative Mode Toggle - Only show when editing */}
         {existingCategory && (

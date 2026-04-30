@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Category, Transaction } from '../types';
 import { XMarkIcon, CurrencyDollarIcon, TagIcon } from '../constants';
+import TitheCalculator from './TitheCalculator';
 
 interface TransactionFormProps {
   isOpen: boolean;
@@ -32,6 +33,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
+
+  const formatAmountForTithe = (amount: number) => {
+    try {
+      return amount.toLocaleString(undefined, { style: 'currency', currency: selectedCurrency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    } catch (error) {
+      return `${selectedCurrency} ${amount.toFixed(2)}`;
+    }
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -173,6 +182,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               />
             </div>
             {errors.amount && <p className="text-red-400 text-sm mt-1">{errors.amount}</p>}
+            <TitheCalculator amount={formData.amount} formatCurrency={formatAmountForTithe} compact />
           </div>
 
           {/* Description */}

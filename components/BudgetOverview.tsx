@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { InfoIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon } from '../constants';
 import { CURRENCIES } from '../constants';
+import TitheCalculator from './TitheCalculator';
 
 interface BudgetOverviewProps {
   totalIncome: number;
@@ -150,6 +151,7 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
               {/* Focus indicator line */}
               <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-emerald-500 to-cyan-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
             </div>
+            <TitheCalculator amount={totalIncome} formatCurrency={formatCurrency} accent="emerald" />
           </motion.div>
 
           {/* Currency Selection */}
