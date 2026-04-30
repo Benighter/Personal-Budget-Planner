@@ -13,9 +13,10 @@ const TitheCalculator: React.FC<TitheCalculatorProps> = ({
   accent = 'sky',
   compact = false
 }) => {
-  const [percentage, setPercentage] = useState(10);
+  const [percentageInput, setPercentageInput] = useState('10');
   const safeAmount = Number.isFinite(amount) && amount > 0 ? amount : 0;
-  const safePercentage = Number.isFinite(percentage) && percentage >= 10 ? percentage : 10;
+  const parsedPercentage = parseFloat(percentageInput);
+  const safePercentage = Number.isFinite(parsedPercentage) ? Math.max(10, parsedPercentage) : 10;
   const titheAmount = safeAmount * (safePercentage / 100);
   const accentClasses = accent === 'emerald'
     ? {
@@ -37,7 +38,16 @@ const TitheCalculator: React.FC<TitheCalculatorProps> = ({
 
   const handlePercentageChange = (value: string) => {
     const nextPercentage = parseFloat(value);
-    setPercentage(Number.isFinite(nextPercentage) ? Math.max(10, nextPercentage) : 10);
+    setPercentageInput(Number.isFinite(nextPercentage) ? Math.max(10, nextPercentage).toString() : '10');
+  };
+
+  const handlePercentageBlur = () => {
+    if (!Number.isFinite(parsedPercentage) || parsedPercentage < 10) {
+      setPercentageInput('10');
+      return;
+    }
+
+    setPercentageInput(parsedPercentage.toString());
   };
 
   return (
@@ -57,24 +67,25 @@ const TitheCalculator: React.FC<TitheCalculatorProps> = ({
         <input
           type="range"
           min="10"
-          max="30"
+          max="100"
           step="0.5"
-          value={Math.min(safePercentage, 30)}
+          value={Math.min(safePercentage, 100)}
           onChange={(event) => handlePercentageChange(event.target.value)}
           className={`w-full ${accentClasses.range}`}
           aria-label="Tithe percentage"
         />
-        <div className="relative">
+        <div className={`flex items-center rounded-lg border border-slate-600/60 bg-slate-800/70 transition-all focus-within:ring-2 ${accentClasses.focus}`}>
           <input
             type="number"
             min="10"
             step="0.5"
-            value={safePercentage}
-            onChange={(event) => handlePercentageChange(event.target.value)}
-            className={`w-full rounded-lg border border-slate-600/60 bg-slate-800/70 px-3 py-2 pr-8 text-sm font-semibold text-slate-100 outline-none transition-all focus:ring-2 ${accentClasses.focus}`}
+            value={percentageInput}
+            onChange={(event) => setPercentageInput(event.target.value)}
+            onBlur={handlePercentageBlur}
+            className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm font-semibold text-slate-100 outline-none tabular-nums"
             aria-label="Tithe percentage"
           />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">%</span>
+          <span className="flex h-full items-center px-3 text-sm font-semibold leading-none text-slate-400">%</span>
         </div>
       </div>
     </div>
