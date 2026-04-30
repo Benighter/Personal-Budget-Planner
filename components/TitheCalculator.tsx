@@ -25,7 +25,7 @@ const TitheCalculator: React.FC<TitheCalculatorProps> = ({
         text: 'text-emerald-300',
         value: 'text-emerald-400',
         range: 'accent-emerald-400',
-        focus: 'focus:border-emerald-400 focus:ring-emerald-400/20'
+        focus: 'focus-within:border-emerald-400 focus-within:ring-emerald-400/20'
       }
     : {
         border: 'border-sky-500/25',
@@ -33,12 +33,17 @@ const TitheCalculator: React.FC<TitheCalculatorProps> = ({
         text: 'text-sky-300',
         value: 'text-sky-400',
         range: 'accent-sky-400',
-        focus: 'focus:border-sky-400 focus:ring-sky-400/20'
+        focus: 'focus-within:border-sky-400 focus-within:ring-sky-400/20'
       };
 
-  const handlePercentageChange = (value: string) => {
-    const nextPercentage = parseFloat(value);
-    setPercentageInput(Number.isFinite(nextPercentage) ? Math.max(10, nextPercentage).toString() : '10');
+  const handleSliderChange = (value: string) => {
+    setPercentageInput(value);
+  };
+
+  const handlePercentageInputChange = (value: string) => {
+    if (/^\d*\.?\d*$/.test(value)) {
+      setPercentageInput(value);
+    }
   };
 
   const handlePercentageBlur = () => {
@@ -70,22 +75,21 @@ const TitheCalculator: React.FC<TitheCalculatorProps> = ({
           max="100"
           step="0.5"
           value={Math.min(safePercentage, 100)}
-          onChange={(event) => handlePercentageChange(event.target.value)}
+          onChange={(event) => handleSliderChange(event.target.value)}
           className={`w-full ${accentClasses.range}`}
           aria-label="Tithe percentage"
         />
-        <div className={`flex items-center rounded-lg border border-slate-600/60 bg-slate-800/70 transition-all focus-within:ring-2 ${accentClasses.focus}`}>
+        <div className={`flex h-10 items-center rounded-lg border border-slate-600/60 bg-slate-800/70 transition-all focus-within:ring-2 ${accentClasses.focus}`}>
           <input
-            type="number"
-            min="10"
-            step="0.5"
+            type="text"
+            inputMode="decimal"
             value={percentageInput}
-            onChange={(event) => setPercentageInput(event.target.value)}
+            onChange={(event) => handlePercentageInputChange(event.target.value)}
             onBlur={handlePercentageBlur}
-            className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm font-semibold text-slate-100 outline-none tabular-nums"
+            className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold text-slate-100 outline-none tabular-nums"
             aria-label="Tithe percentage"
           />
-          <span className="flex h-full items-center px-3 text-sm font-semibold leading-none text-slate-400">%</span>
+          <span className="grid h-full w-10 place-items-center text-sm font-semibold leading-none text-slate-400">%</span>
         </div>
       </div>
     </div>

@@ -133,12 +133,13 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({
                 onChange={handleIncomeChange}
                 onFocus={handleIncomeFocus}
                 onBlur={handleIncomeBlur}
-                className="w-full bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 text-slate-100 rounded-xl px-4 py-3 text-lg font-semibold transition-all duration-200 pr-12 outline-none tabular-nums"
+                className="w-full bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 text-slate-100 rounded-xl px-4 py-3 text-lg font-semibold transition-all duration-200 pr-14 outline-none tabular-nums"
                 placeholder="Enter your monthly income"
               />
               <motion.button
+                type="button"
                 onClick={onToggleIncomeHidden}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-400 transition-colors p-1 rounded-lg"
+                className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:text-emerald-400"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 aria-label={isIncomeHidden ? "Show income" : "Hide income"}
