@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
-import { Category, Subcategory, Transaction, ModalType, CategoryFormProps, SubcategoryFormProps, MonthlyBudget } from './types';
+import { Category, Subcategory, ModalType, CategoryFormProps, SubcategoryFormProps, MonthlyBudget } from './types';
 import { SecuritySettings } from './types';
 import AppLockScreen from './components/AppLockScreen';
 // Dashboard is on the critical path — eager load
@@ -9,8 +9,6 @@ import Dashboard from './components/Dashboard';
 // All other screens are lazy-loaded to shrink the initial bundle
 const CategoryManager = lazy(() => import('./components/CategoryManager'));
 const BudgetPlanning = lazy(() => import('./components/BudgetPlanning'));
-const BudgetHistory = lazy(() => import('./components/BudgetHistory'));
-const SavingsCalculator = lazy(() => import('./components/SavingsCalculator'));
 import Modal from './components/Modal';
 import CategoryForm from './components/CategoryForm';
 import SubcategoryForm from './components/SubcategoryForm';
@@ -35,7 +33,6 @@ const AppContent: React.FC = () => {
   const { currentSection, navigateToSection } = useNavigation();
   const [totalIncome, setTotalIncome] = useState<number>(0);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [modalState, setModalState] = useState<ModalType>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<string>('ZAR');
   const [areGlobalAmountsHidden, setAreGlobalAmountsHidden] = useState<boolean>(false);
@@ -77,7 +74,6 @@ const AppContent: React.FC = () => {
       // Clear state when user logs out
       setTotalIncome(0);
       setCategories([]);
-      setTransactions([]);
       setSelectedCurrency(CURRENCIES[0].code);
       setAreGlobalAmountsHidden(false);
       setIsIncomeHidden(true);
@@ -130,12 +126,8 @@ const AppContent: React.FC = () => {
           setCategories(categories);
         });
 
-        const unsubscribeTransactions = FirebaseDataManager.subscribeToTransactions(user.uid, (transactions) => {
-          setTransactions(transactions);
-        });
-
         // Store unsubscribe functions for cleanup
-        unsubscribeFunctions = [unsubscribeBudgetData, unsubscribeCategories, unsubscribeTransactions];
+        unsubscribeFunctions = [unsubscribeBudgetData, unsubscribeCategories];
 
         // Load monthly budgets once (they don't need real-time updates)
         const monthlyBudgets = await FirebaseDataManager.getMonthlyBudgets(user.uid);
@@ -160,7 +152,7 @@ const AppContent: React.FC = () => {
     };
   }, [user, addToast]);
 
-  const handleSectionChange = useCallback((section: 'dashboard' | 'categories' | 'planning' | 'history' | 'savings') => navigateToSection(section), [navigateToSection]);
+  const handleSectionChange = useCallback((section: 'dashboard' | 'categories' | 'planning') => navigateToSection(section), [navigateToSection]);
   const openModal = useCallback((modalType: ModalType) => setModalState(modalType), []);
   const closeModal = useCallback(() => setModalState(null), []);
 
@@ -696,8 +688,6 @@ const AppContent: React.FC = () => {
           isIncomeHidden={isIncomeHidden}
           onToggleIncomeHidden={toggleIncomeHidden}
         /></Suspense>;
-      case 'history': return <Suspense fallback={<SectionFallback />}><BudgetHistory monthlyBudgets={monthlyBudgets} allTransactions={transactions} formatCurrency={formatCurrency} selectedCurrency={selectedCurrency} /></Suspense>;
-      case 'savings': return <Suspense fallback={<SectionFallback />}><SavingsCalculator /></Suspense>;
       default: return <Dashboard 
           totalIncome={totalIncome}
           totalAllocated={totalAllocated}
@@ -726,7 +716,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="h-screen bg-slate-900 text-white flex flex-col">
       <Navbar currentSection={currentSection} onSectionChange={handleSectionChange} onNewCategory={() => openModal({ type: 'addCategory' })} />
-      <main className={`flex-grow ${currentSection === 'savings' ? 'flex main-content-savings overflow-x-hidden' : 'overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 main-content'}`}>
+      <main className="flex-grow overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 main-content">
         {renderCurrentSection()}
       </main>
       <Toaster />

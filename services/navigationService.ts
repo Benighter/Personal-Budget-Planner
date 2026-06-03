@@ -1,6 +1,6 @@
 import median from 'median-js-bridge';
 
-export type AppSection = 'dashboard' | 'categories' | 'reports' | 'planning' | 'history' | 'savings';
+export type AppSection = 'dashboard' | 'categories' | 'reports' | 'planning';
 
 export interface NavigationState {
   section: AppSection;
@@ -61,7 +61,7 @@ class NavigationService {
     const sectionFromHash = hash as AppSection;
     const sectionFromPath = path as AppSection;
     
-    const validSections: AppSection[] = ['dashboard', 'categories', 'reports', 'planning', 'history', 'savings'];
+    const validSections: AppSection[] = ['dashboard', 'categories', 'reports', 'planning'];
     
     if (validSections.includes(sectionFromHash)) {
       return sectionFromHash;
@@ -153,7 +153,7 @@ class NavigationService {
   public initializeFromUrl() {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '') as AppSection;
-      const validSections: AppSection[] = ['dashboard', 'categories', 'reports', 'planning', 'history', 'savings'];
+      const validSections: AppSection[] = ['dashboard', 'categories', 'reports', 'planning'];
       
       if (validSections.includes(hash)) {
         this.navigateToSection(hash, false);
